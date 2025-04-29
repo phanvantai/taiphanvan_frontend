@@ -1,103 +1,110 @@
+import Link from "next/link";
 import Image from "next/image";
+import BlogPostCard from "@/components/BlogPostCard";
+import { getFeaturedPosts } from "@/lib/blog";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // Get featured blog posts using our utility function
+  const featuredPosts = getFeaturedPosts(3);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="space-y-16">
+      {/* Hero section */}
+      <section style={{
+        background: 'var(--hero-gradient)',
+        borderRadius: '15px',
+        padding: '4rem 2rem',
+        textAlign: 'center',
+        animation: 'fadeIn 1s ease-in-out'
+      }}>
+        <h1 className="section-title" style={{ marginBottom: '1.5rem' }}>
+          Welcome to My <span className="highlight">Personal Blog</span>
+        </h1>
+        <p style={{
+          fontSize: '1.2rem',
+          color: 'var(--text-muted-color)',
+          marginBottom: '2rem',
+          maxWidth: '700px',
+          margin: '0 auto 2rem'
+        }}>
+          Sharing thoughts, experiences, and knowledge on technology, design, and life.
+        </p>
+        <Link
+          href="/blog"
+          className="btn btn-primary"
+        >
+          Read My Blog
+        </Link>
+      </section>
+
+      {/* Featured posts section */}
+      <section>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '2rem'
+        }}>
+          <h2 className="section-title" style={{ margin: 0 }}>Featured Posts</h2>
+          <Link href="/blog" style={{
+            color: 'var(--text-muted-color)',
+            fontWeight: 500,
+            transition: 'color 0.3s'
+          }} className="hover-effect">
+            View all posts →
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="blog-grid">
+          {featuredPosts.map(post => (
+            <BlogPostCard key={post.id} post={post} />
+          ))}
+        </div>
+      </section>
+
+      {/* Newsletter section */}
+      <section style={{
+        background: 'var(--background-alt-color)',
+        padding: '3rem',
+        borderRadius: '15px',
+        boxShadow: '0 5px 15px var(--shadow-color)'
+      }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>
+            Subscribe to my newsletter
+          </h2>
+          <p style={{
+            color: 'var(--text-muted-color)',
+            marginBottom: '2rem'
+          }}>
+            Get the latest posts and updates delivered straight to your inbox.
+          </p>
+          <form className="flex flex-col gap-4 sm:flex-row">
+            <input
+              type="email"
+              placeholder="Your email address"
+              style={{
+                flexGrow: 1,
+                padding: '0.8rem 1rem',
+                border: '1px solid var(--border-color)',
+                borderRadius: '30px',
+                backgroundColor: 'var(--background-color)',
+                color: 'var(--text-color)',
+                outline: 'none',
+                transition: 'all 0.3s ease'
+              }}
+              required
+            />
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ minWidth: '120px' }}
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,4 +1,15 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My Personal Blog
+
+A modern personal blog built with Next.js, TypeScript, and Tailwind CSS. This project uses the App Router for efficient page routing and React Server Components for optimal performance.
+
+## Features
+
+- 📱 Responsive design for all devices
+- 🔍 SEO optimized
+- ⚡ Fast page loading with Next.js App Router
+- 🎨 Styled with Tailwind CSS
+- 📝 Markdown-based blog posts
+- 🔄 Type safety with TypeScript
 
 ## Getting Started
 
@@ -16,21 +27,24 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The project follows Next.js App Router conventions:
 
-## Learn More
+- `src/app`: Contains pages, layouts, and routes
+- `src/components`: Reusable React components
+- `src/content`: Blog post markdown files
+- `src/lib`: Utility functions and shared code
+- `src/types`: TypeScript type definitions
+- `public`: Static assets like images and fonts
 
-To learn more about Next.js, take a look at the following resources:
+## Technologies Used
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Next.js](https://nextjs.org) - React framework with App Router
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [React](https://react.dev/) - UI library with Server Components support
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This blog can be easily deployed on [Vercel](https://vercel.com/new) or any other platform that supports Next.js.
