@@ -5,6 +5,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -40,11 +41,13 @@ export default function RootLayout({
       </head>
       <body className={poppins.className}>
         <ThemeProvider>
-          <Header />
-          <main className="container" style={{ paddingTop: '100px', paddingBottom: '50px', minHeight: 'calc(100vh - 200px)' }}>
-            {children}
-          </main>
-          <Footer />
+          <AuthProvider>
+            <Header />
+            <main className="container" style={{ paddingTop: '100px', paddingBottom: '50px', minHeight: 'calc(100vh - 200px)' }}>
+              {children}
+            </main>
+            <Footer />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
