@@ -142,8 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Accept': 'application/json'
-                },
-                credentials: 'include' // Include cookies if your API uses them
+                }
+                // Removed credentials: 'include' to avoid CORS issues
             })
 
             // Check if the response is JSON
@@ -211,9 +211,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ email, password }),
-                credentials: 'include' // Include cookies if your API uses them
-            })
+                body: JSON.stringify({ email, password })
+                // Removed credentials: 'include' to avoid CORS issues
+            }).catch(error => {
+                console.error('Fetch error during login:', error);
+                throw new Error(`Network error: ${error.message}`);
+            });
 
             // First check if the response can be parsed as JSON
             let data
@@ -464,8 +467,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ refresh_token: tokens.refresh_token }),
-                credentials: 'include'
+                body: JSON.stringify({ refresh_token: tokens.refresh_token })
+                // Removed credentials: 'include' to avoid CORS issues
             })
 
             // Check if the response can be parsed as JSON
