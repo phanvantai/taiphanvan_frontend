@@ -1,10 +1,10 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import type { Metadata } from "next/types";
 import { getAllPosts, getAllCategories } from "@/lib/blog";
 import BlogPostCard from "@/components/BlogPostCard";
 
 export const metadata: Metadata = {
-    title: "Blog | My Personal Blog",
+    title: "Blog | Tai Phan Van",
     description: "Read all my latest blog posts about technology, design, and more.",
 };
 
@@ -15,7 +15,7 @@ export default function BlogPage() {
     return (
         <div className="blog-container">
             <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
-                <h1 className="section-title">My Blog</h1>
+                <h1 className="section-title">Tai Phan Van Blog</h1>
                 <p style={{
                     fontSize: '1.1rem',
                     color: 'var(--text-muted-color)',

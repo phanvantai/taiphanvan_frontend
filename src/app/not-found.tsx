@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import type { Metadata } from 'next';
+import type { Metadata } from 'next/types';
 
 export const metadata: Metadata = {
-    title: 'Page Not Found | My Personal Blog',
+    title: 'Page Not Found | Tai Phan Van',
     description: 'Sorry, the page you are looking for does not exist.'
 };
 

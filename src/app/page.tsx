@@ -17,7 +17,7 @@ export default function Home() {
         animation: 'fadeIn 1s ease-in-out'
       }}>
         <h1 className="section-title" style={{ marginBottom: '1.5rem' }}>
-          Welcome to My <span className="highlight">Personal Blog</span>
+          Welcome to <span className="highlight">Tai Phan Van</span>
         </h1>
         <p style={{
           fontSize: '1.2rem',

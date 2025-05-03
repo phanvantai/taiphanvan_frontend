@@ -93,7 +93,7 @@ export default function Header() {
                                 height={44}
                                 className="logo-image"
                             />
-                            <span className="logo-text">My Personal Blog</span>
+                            <span className="logo-text">Tai Phan Van</span>
                         </Link>
                     </div>
 

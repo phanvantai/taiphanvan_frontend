@@ -6,10 +6,10 @@ import ShareButtons from '@/components/ShareButtons';
 import { getPostBySlug, getPostContent, getRelatedPosts, formatDate } from '@/lib/blog';
 
 // This generates metadata for each blog post dynamically
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: { slug: string } 
+export async function generateMetadata({
+    params
+}: {
+    params: { slug: string }
 }): Promise<Metadata> {
     const post = getPostBySlug(params.slug);
 
@@ -20,21 +20,21 @@ export async function generateMetadata({
     }
 
     return {
-        title: `${post.title} | My Personal Blog`,
+        title: `${post.title} | Tai Phan Van`,
         description: post.excerpt,
         openGraph: {
             title: post.title,
             description: post.excerpt,
             type: 'article',
             publishedTime: post.date,
-            authors: ['Your Name'],
+            authors: ['Tai Phan Van'],
             tags: post.categories
         }
     };
 }
 // Define the page component
-export default function BlogPostPage(props: { 
-  params: { slug: string } 
+export default function BlogPostPage(props: {
+    params: { slug: string }
 }) {
     const { slug } = props.params;
     const post = getPostBySlug(slug);
@@ -70,7 +70,7 @@ export default function BlogPostPage(props: {
         .join('');
 
     // Get the canonical URL for this post
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://myblog.com';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://taiphanvan.dev';
     const canonicalUrl = `${baseUrl}/blog/${slug}`;
 
     return (

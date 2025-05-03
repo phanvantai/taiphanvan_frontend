@@ -1,4 +1,4 @@
-# My Personal Blog
+# Tai Phan Van Frontend
 
 A modern personal blog built with Next.js, TypeScript, and Tailwind CSS. This project uses the App Router for efficient page routing and React Server Components for optimal performance.
 

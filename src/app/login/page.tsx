@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
+import { Metadata } from 'next/types';
 import LoginForm from '@/components/LoginForm';
 
 export const metadata: Metadata = {
-    title: 'Login | My Personal Blog',
+    title: 'Login | Tai Phan Van',
     description: 'Sign in to your account to post comments and interact with the community.'
 };
 

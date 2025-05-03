@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata } from "next/types";
 import { Poppins } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -14,8 +14,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "My Personal Blog",
-  description: "A blog where I share my thoughts and experiences",
+  title: "Tai Phan Van | Blog & News",
+  description: "A blog where Tai Phan Van shares thoughts and experiences",
   icons: {
     icon: [
       { url: '/images/logo.png' }

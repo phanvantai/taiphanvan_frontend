@@ -1,8 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata } from 'next/types';
 
 export const metadata: Metadata = {
-    title: 'About Me | My Personal Blog',
-    description: 'Learn more about the author of this blog and my background, interests, and expertise.'
+    title: 'About Me | Tai Phan Van',
+    description: 'Learn more about Tai Phan Van and my background, interests, and expertise.'
 };
 
 export default function AboutPage() {
@@ -45,7 +45,7 @@ export default function AboutPage() {
                         fontSize: '1.8rem',
                         marginBottom: '1rem',
                         color: 'var(--primary-color)'
-                    }}>Hello, I&apos;m [Your Name]</h2>
+                    }}>Hello, I&apos;m Tai Phan Van</h2>
                     <p style={{
                         marginBottom: '1.5rem',
                         color: 'var(--text-muted-color)'
@@ -62,7 +62,7 @@ export default function AboutPage() {
                     </p>
                     <div className="social-icons" style={{ marginTop: '2rem' }}>
                         <a
-                            href="https://twitter.com/yourusername"
+                            href="https://twitter.com/taiphanvan"
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Follow me on Twitter"
@@ -72,7 +72,7 @@ export default function AboutPage() {
                             </svg>
                         </a>
                         <a
-                            href="https://github.com/yourusername"
+                            href="https://github.com/taiphanvan"
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Follow me on GitHub"
@@ -82,7 +82,7 @@ export default function AboutPage() {
                             </svg>
                         </a>
                         <a
-                            href="https://linkedin.com/in/yourusername"
+                            href="https://linkedin.com/in/taiphanvan"
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Connect with me on LinkedIn"
@@ -94,7 +94,7 @@ export default function AboutPage() {
                             </svg>
                         </a>
                         <a
-                            href="mailto:your.email@example.com"
+                            href="mailto:contact@taiphanvan.dev"
                             aria-label="Email me"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -224,16 +224,16 @@ export default function AboutPage() {
                 }}>
                     I&apos;m always open to connecting with new people, discussing interesting projects, or just having a friendly chat.
                     Feel free to reach out to me through any of the social platforms above or send me an email at
-                    <a href="mailto:your.email@example.com" style={{
+                    <a href="mailto:contact@taiphanvan.dev" style={{
                         color: 'var(--primary-color)',
                         marginLeft: '5px'
                     }}>
-                        your.email@example.com
+                        contact@taiphanvan.dev
                     </a>.
                 </p>
 
                 <div style={{ textAlign: 'center' }}>
-                    <a href="mailto:your.email@example.com" className="btn btn-primary">
+                    <a href="mailto:contact@taiphanvan.dev" className="btn btn-primary">
                         Get in Touch
                     </a>
                 </div>

@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
+import { Metadata } from 'next/types';
 import RegisterForm from '@/components/RegisterForm';
 
 export const metadata: Metadata = {
-    title: 'Register | My Personal Blog',
+    title: 'Register | Tai Phan Van',
     description: 'Create an account to comment on posts and join our community.'
 };
 
