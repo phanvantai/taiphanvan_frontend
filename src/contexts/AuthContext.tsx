@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useState, useEffect, useContext } from 'react'
+import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react'
 
 interface User {
     id: number
@@ -48,9 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [error, setError] = useState<string | null>(null) // Error message state
     const [refreshTimerId, setRefreshTimerId] = useState<NodeJS.Timeout | null>(null)
+    
+    // Create a ref for refreshAccessToken to break circular dependency
+    const refreshAccessTokenRef = useRef<() => Promise<string | null>>(() => Promise.resolve(null))
 
     // Set up token refresh timer
-    const setupTokenRefreshTimer = (expiresIn: number) => {
+    const setupTokenRefreshTimer = useCallback((expiresIn: number) => {
         // Clear any existing timer
         if (refreshTimerId) {
             clearTimeout(refreshTimerId)
@@ -64,12 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log(`Setting up token refresh timer for ${refreshTime}ms from now`)
             const timerId = setTimeout(async () => {
                 console.log('Token refresh timer triggered')
-                await refreshAccessToken()
+                await refreshAccessTokenRef.current()
             }, refreshTime)
 
             setRefreshTimerId(timerId)
         }
-    }
+    }, [refreshTimerId])
 
     // Check if user is already logged in (on mount)
     useEffect(() => {
@@ -124,14 +127,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 clearTimeout(refreshTimerId)
             }
         }
-    }, [])
+    }, [refreshTimerId, setupTokenRefreshTimer])
 
     // Set up refresh timer whenever tokens change
     useEffect(() => {
         if (tokens?.access_token && tokens?.refresh_token && tokens?.expires_in > 0) {
             setupTokenRefreshTimer(tokens.expires_in)
         }
-    }, [tokens?.access_token])
+    }, [tokens?.access_token, tokens?.refresh_token, tokens?.expires_in, setupTokenRefreshTimer])
 
     // Fetch user profile with the token
     const fetchUserProfile = async (authToken: string) => {
@@ -290,9 +293,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Fetch user profile
                 await fetchUserProfile(token)
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Login error:', err)
-            setError(err.message || 'An error occurred during login')
+            setError(err instanceof Error ? err.message : 'An error occurred during login')
             setUser(null)
             setTokens(null)
             throw err // Re-throw to allow the component to handle it
@@ -329,8 +332,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // You could auto-login the user here or redirect to login
             return data
-        } catch (err: any) {
-            setError(err.message || 'An error occurred during registration')
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred during registration')
             throw err
         } finally {
             setIsLoading(false)
@@ -404,8 +407,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Update the user state with the new data
             setUser(prevUser => prevUser ? { ...prevUser, ...responseData.user } : null)
             return responseData
-        } catch (err: any) {
-            setError(err.message || 'An error occurred while updating profile')
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred while updating profile')
             throw err
         } finally {
             setIsLoading(false)
@@ -514,18 +517,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
                 throw new Error('No access token in refresh response')
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Token refresh error:', err)
 
             // If refresh fails, we should log the user out
-            if (err.message.includes('expired') || err.message.includes('invalid')) {
+            if (err instanceof Error && (err.message.includes('expired') || err.message.includes('invalid'))) {
                 await logout()
             }
 
-            setError(err.message || 'Failed to refresh access token')
+            setError(err instanceof Error ? err.message : 'Failed to refresh access token')
             return null
         }
     }
+
+    // Assign the refreshAccessToken function to the ref
+    refreshAccessTokenRef.current = refreshAccessToken;
 
     // Clear error state
     const clearError = () => {

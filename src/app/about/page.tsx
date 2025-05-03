@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,14 +10,14 @@ export default function AboutPage() {
         <div className="blog-container">
             <h1 className="section-title">About Me</h1>
 
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                 gap: '2rem',
                 marginBottom: '4rem'
             }}>
                 <div className="about-image" style={{ position: 'relative' }}>
-                    <div style={{ 
+                    <div style={{
                         position: 'relative',
                         width: '100%',
                         height: '400px',
@@ -27,7 +26,7 @@ export default function AboutPage() {
                         boxShadow: '0 10px 15px var(--shadow-color)'
                     }}>
                         {/* Replace with your own photo */}
-                        <div style={{ 
+                        <div style={{
                             position: 'absolute',
                             inset: 0,
                             backgroundColor: 'var(--background-alt-color)',
@@ -42,19 +41,19 @@ export default function AboutPage() {
                 </div>
 
                 <div>
-                    <h2 style={{ 
+                    <h2 style={{
                         fontSize: '1.8rem',
                         marginBottom: '1rem',
                         color: 'var(--primary-color)'
-                    }}>Hello, I'm [Your Name]</h2>
-                    <p style={{ 
+                    }}>Hello, I&apos;m [Your Name]</h2>
+                    <p style={{
                         marginBottom: '1.5rem',
                         color: 'var(--text-muted-color)'
                     }}>
-                        I'm a [your profession] with a passion for [your interests]. This blog is where I share my thoughts,
+                        I&apos;m a [your profession] with a passion for [your interests]. This blog is where I share my thoughts,
                         experiences, and knowledge about technology, design, and personal development.
                     </p>
-                    <p style={{ 
+                    <p style={{
                         marginBottom: '1.5rem',
                         color: 'var(--text-muted-color)'
                     }}>
@@ -109,38 +108,38 @@ export default function AboutPage() {
 
             <section style={{ marginBottom: '4rem' }}>
                 <h2 className="section-title">My Background</h2>
-                <p style={{ 
+                <p style={{
                     marginBottom: '1.5rem',
                     color: 'var(--text-muted-color)'
                 }}>
-                    I have over [X years] of experience in [your field]. I've worked with [relevant technologies, tools, or companies]
+                    I have over [X years] of experience in [your field]. I&apos;ve worked with [relevant technologies, tools, or companies]
                     and have developed expertise in [your specialties].
                 </p>
-                <p style={{ 
+                <p style={{
                     marginBottom: '1.5rem',
                     color: 'var(--text-muted-color)'
                 }}>
-                    My educational background includes [your education]. I'm always learning and currently exploring [what you're learning now].
+                    My educational background includes [your education]. I&apos;m always learning and currently exploring [what you&apos;re learning now].
                 </p>
             </section>
 
             <section style={{ marginBottom: '4rem' }}>
                 <h2 className="section-title">What I Write About</h2>
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                     gap: '2rem'
                 }}>
-                    <div style={{ 
-                        backgroundColor: 'var(--card-bg-color)', 
-                        padding: '2rem', 
+                    <div style={{
+                        backgroundColor: 'var(--card-bg-color)',
+                        padding: '2rem',
                         borderRadius: '10px',
                         boxShadow: '0 5px 15px var(--shadow-color)',
                         transition: 'transform 0.3s ease'
                     }} className="hover-card">
-                        <h3 style={{ 
-                            fontSize: '1.4rem', 
-                            fontWeight: '600', 
+                        <h3 style={{
+                            fontSize: '1.4rem',
+                            fontWeight: '600',
                             marginBottom: '1rem',
                             color: 'var(--primary-color)'
                         }}>
@@ -151,16 +150,16 @@ export default function AboutPage() {
                             Web development, programming languages, tools, and best practices.
                         </p>
                     </div>
-                    <div style={{ 
-                        backgroundColor: 'var(--card-bg-color)', 
-                        padding: '2rem', 
+                    <div style={{
+                        backgroundColor: 'var(--card-bg-color)',
+                        padding: '2rem',
                         borderRadius: '10px',
                         boxShadow: '0 5px 15px var(--shadow-color)',
                         transition: 'transform 0.3s ease'
                     }} className="hover-card">
-                        <h3 style={{ 
-                            fontSize: '1.4rem', 
-                            fontWeight: '600', 
+                        <h3 style={{
+                            fontSize: '1.4rem',
+                            fontWeight: '600',
                             marginBottom: '1rem',
                             color: 'var(--primary-color)'
                         }}>
@@ -171,16 +170,16 @@ export default function AboutPage() {
                             UI/UX principles, design systems, and creative processes.
                         </p>
                     </div>
-                    <div style={{ 
-                        backgroundColor: 'var(--card-bg-color)', 
-                        padding: '2rem', 
+                    <div style={{
+                        backgroundColor: 'var(--card-bg-color)',
+                        padding: '2rem',
                         borderRadius: '10px',
                         boxShadow: '0 5px 15px var(--shadow-color)',
                         transition: 'transform 0.3s ease'
                     }} className="hover-card">
-                        <h3 style={{ 
-                            fontSize: '1.4rem', 
-                            fontWeight: '600', 
+                        <h3 style={{
+                            fontSize: '1.4rem',
+                            fontWeight: '600',
                             marginBottom: '1rem',
                             color: 'var(--primary-color)'
                         }}>
@@ -191,16 +190,16 @@ export default function AboutPage() {
                             Learning strategies, productivity tips, and career development.
                         </p>
                     </div>
-                    <div style={{ 
-                        backgroundColor: 'var(--card-bg-color)', 
-                        padding: '2rem', 
+                    <div style={{
+                        backgroundColor: 'var(--card-bg-color)',
+                        padding: '2rem',
                         borderRadius: '10px',
                         boxShadow: '0 5px 15px var(--shadow-color)',
                         transition: 'transform 0.3s ease'
                     }} className="hover-card">
-                        <h3 style={{ 
-                            fontSize: '1.4rem', 
-                            fontWeight: '600', 
+                        <h3 style={{
+                            fontSize: '1.4rem',
+                            fontWeight: '600',
                             marginBottom: '1rem',
                             color: 'var(--primary-color)'
                         }}>
@@ -216,17 +215,17 @@ export default function AboutPage() {
 
             <section>
                 <h2 className="section-title">Get In Touch</h2>
-                <p style={{ 
+                <p style={{
                     marginBottom: '2rem',
                     color: 'var(--text-muted-color)',
                     textAlign: 'center',
                     maxWidth: '700px',
                     margin: '0 auto 2rem'
                 }}>
-                    I'm always open to connecting with new people, discussing interesting projects, or just having a friendly chat.
+                    I&apos;m always open to connecting with new people, discussing interesting projects, or just having a friendly chat.
                     Feel free to reach out to me through any of the social platforms above or send me an email at
-                    <a href="mailto:your.email@example.com" style={{ 
-                        color: 'var(--primary-color)', 
+                    <a href="mailto:your.email@example.com" style={{
+                        color: 'var(--primary-color)',
                         marginLeft: '5px'
                     }}>
                         your.email@example.com

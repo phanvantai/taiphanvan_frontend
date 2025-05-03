@@ -45,7 +45,7 @@ export default function LoginForm({ onSuccess, onRegisterClick, inDialog = false
             } else if (!inDialog) {
                 router.push('/');
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Error is already handled in AuthContext
             console.error('Login form submission failed:', err);
             // We don't need to do anything else here
@@ -280,7 +280,7 @@ export default function LoginForm({ onSuccess, onRegisterClick, inDialog = false
                                 color: 'var(--text-muted-color)',
                                 fontSize: '0.875rem'
                             }}>
-                                Don't have an account?
+                                Don&apos;t have an account?
                             </span>
                         </div>
                     </div>

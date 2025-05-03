@@ -55,7 +55,7 @@ export default function ProfilePage() {
             });
 
             setFormMsg({ type: 'success', message: 'Profile updated successfully!' });
-        } catch (err) {
+        } catch {
             // Error is handled in AuthContext
             setFormMsg({ type: 'error', message: error || 'Failed to update profile' });
         } finally {
