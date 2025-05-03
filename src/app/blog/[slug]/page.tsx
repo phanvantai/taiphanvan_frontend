@@ -1,22 +1,16 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import type { Metadata } from 'next';
+import { Metadata } from 'next/types';
 import BlogPostCard from '@/components/BlogPostCard';
 import ShareButtons from '@/components/ShareButtons';
 import { getPostBySlug, getPostContent, getRelatedPosts, formatDate } from '@/lib/blog';
 
-// Define the correct params type for Next.js App Router
-interface BlogPostPageProps {
-    params: {
-        slug: string;
-    };
-    searchParams: { [key: string]: string | string[] | undefined };
-}
-
 // This generates metadata for each blog post dynamically
-export async function generateMetadata({
-    params
-}: BlogPostPageProps): Promise<Metadata> {
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { slug: string } 
+}): Promise<Metadata> {
     const post = getPostBySlug(params.slug);
 
     if (!post) {
@@ -38,17 +32,20 @@ export async function generateMetadata({
         }
     };
 }
-
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-    const post = getPostBySlug(params.slug);
-    const postContent = getPostContent(params.slug);
+// Define the page component
+export default function BlogPostPage(props: { 
+  params: { slug: string } 
+}) {
+    const { slug } = props.params;
+    const post = getPostBySlug(slug);
+    const postContent = getPostContent(slug);
 
     if (!post || !postContent) {
         notFound();
     }
 
     // Get related posts based on categories
-    const relatedPosts = getRelatedPosts(params.slug, 3);
+    const relatedPosts = getRelatedPosts(slug, 3);
 
     // In a real app, you would process markdown here or use a library like MDX
     const contentHtml = postContent.content
@@ -74,7 +71,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
     // Get the canonical URL for this post
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://myblog.com';
-    const canonicalUrl = `${baseUrl}/blog/${params.slug}`;
+    const canonicalUrl = `${baseUrl}/blog/${slug}`;
 
     return (
         <article className="blog-post-container">
