@@ -135,9 +135,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setIsLoading(false)
         }
-    }, [API_URL, setUser, setTokens, setError, setIsLoading])
+    }, []) // Remove API_URL from dependencies as it's defined outside the component
 
-    // Check if user is already logged in (on mount) - Run only once
+    // Check if user is already logged in (on mount)
     useEffect(() => {
         const checkAuth = async () => {
             try {
@@ -192,7 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 refreshTimerRef.current = null
             }
         }
-    }, []) // Empty dependency array to run only once on mount
+    }, [fetchUserProfile, setupTokenRefreshTimer]) // Add missing dependencies
 
     // Refresh access token using refresh token
     const refreshAccessToken = async (): Promise<string | null> => {

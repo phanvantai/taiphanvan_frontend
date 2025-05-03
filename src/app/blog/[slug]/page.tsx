@@ -6,10 +6,11 @@ import ShareButtons from '@/components/ShareButtons';
 import { getPostBySlug, getPostContent, getRelatedPosts, formatDate } from '@/lib/blog';
 
 // Define the correct params type for Next.js App Router
-export interface BlogPostPageProps {
+interface BlogPostPageProps {
     params: {
         slug: string;
     };
+    searchParams: { [key: string]: string | string[] | undefined };
 }
 
 // This generates metadata for each blog post dynamically
