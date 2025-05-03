@@ -47,16 +47,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [tokens, setTokens] = useState<AuthTokens | null>(null)
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [error, setError] = useState<string | null>(null) // Error message state
-    const [refreshTimerId, setRefreshTimerId] = useState<NodeJS.Timeout | null>(null)
-    
+    const refreshTimerRef = useRef<NodeJS.Timeout | null>(null)
+
     // Create a ref for refreshAccessToken to break circular dependency
     const refreshAccessTokenRef = useRef<() => Promise<string | null>>(() => Promise.resolve(null))
 
-    // Set up token refresh timer
+    // Set up token refresh timer - using useCallback with empty dependencies
     const setupTokenRefreshTimer = useCallback((expiresIn: number) => {
         // Clear any existing timer
-        if (refreshTimerId) {
-            clearTimeout(refreshTimerId)
+        if (refreshTimerRef.current) {
+            clearTimeout(refreshTimerRef.current)
+            refreshTimerRef.current = null
         }
 
         // Convert expiresIn from seconds to milliseconds and refresh 1 minute before expiration
@@ -65,79 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Only set up timer if refreshTime is positive
         if (refreshTime > 0) {
             console.log(`Setting up token refresh timer for ${refreshTime}ms from now`)
-            const timerId = setTimeout(async () => {
+            refreshTimerRef.current = setTimeout(async () => {
                 console.log('Token refresh timer triggered')
                 await refreshAccessTokenRef.current()
             }, refreshTime)
-
-            setRefreshTimerId(timerId)
         }
-    }, [refreshTimerId])
-
-    // Check if user is already logged in (on mount)
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const storedAccessToken = localStorage.getItem('access_token')
-                const storedRefreshToken = localStorage.getItem('refresh_token')
-                const storedTokenType = localStorage.getItem('token_type')
-                const storedExpiresIn = localStorage.getItem('expires_in')
-
-                if (storedAccessToken && storedRefreshToken && storedTokenType && storedExpiresIn) {
-                    console.log('Found stored tokens, setting token state')
-                    const authTokens: AuthTokens = {
-                        access_token: storedAccessToken,
-                        refresh_token: storedRefreshToken,
-                        token_type: storedTokenType,
-                        expires_in: parseInt(storedExpiresIn, 10)
-                    }
-                    setTokens(authTokens)
-                    await fetchUserProfile(authTokens.access_token)
-
-                    // Set up token refresh timer
-                    setupTokenRefreshTimer(authTokens.expires_in)
-                } else {
-                    // For backward compatibility with old token storage
-                    const legacyToken = localStorage.getItem('token')
-                    if (legacyToken) {
-                        console.log('Found legacy token, setting token state')
-                        const authTokens: AuthTokens = {
-                            access_token: legacyToken,
-                            refresh_token: '',
-                            token_type: 'Bearer',
-                            expires_in: 0
-                        }
-                        setTokens(authTokens)
-                        await fetchUserProfile(legacyToken)
-                    }
-                }
-            } catch (err) {
-                console.error('Auth initialization error:', err)
-                // Error handling is done in fetchUserProfile
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        checkAuth()
-
-        // Clean up timer on unmount
-        return () => {
-            if (refreshTimerId) {
-                clearTimeout(refreshTimerId)
-            }
-        }
-    }, [refreshTimerId, setupTokenRefreshTimer])
-
-    // Set up refresh timer whenever tokens change
-    useEffect(() => {
-        if (tokens?.access_token && tokens?.refresh_token && tokens?.expires_in > 0) {
-            setupTokenRefreshTimer(tokens.expires_in)
-        }
-    }, [tokens?.access_token, tokens?.refresh_token, tokens?.expires_in, setupTokenRefreshTimer])
+    }, []) // Empty dependency array to prevent recreating this function
 
     // Fetch user profile with the token
-    const fetchUserProfile = async (authToken: string) => {
+    const fetchUserProfile = useCallback(async (authToken: string) => {
         try {
             console.log('Fetching user profile with token')
 
@@ -198,7 +135,149 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setIsLoading(false)
         }
+    }, [API_URL, setUser, setTokens, setError, setIsLoading])
+
+    // Check if user is already logged in (on mount) - Run only once
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const storedAccessToken = localStorage.getItem('access_token')
+                const storedRefreshToken = localStorage.getItem('refresh_token')
+                const storedTokenType = localStorage.getItem('token_type')
+                const storedExpiresIn = localStorage.getItem('expires_in')
+
+                if (storedAccessToken && storedRefreshToken && storedTokenType && storedExpiresIn) {
+                    console.log('Found stored tokens, setting token state')
+                    const authTokens: AuthTokens = {
+                        access_token: storedAccessToken,
+                        refresh_token: storedRefreshToken,
+                        token_type: storedTokenType,
+                        expires_in: parseInt(storedExpiresIn, 10)
+                    }
+                    setTokens(authTokens)
+                    await fetchUserProfile(authTokens.access_token)
+
+                    // Set up token refresh timer
+                    setupTokenRefreshTimer(authTokens.expires_in)
+                } else {
+                    // For backward compatibility with old token storage
+                    const legacyToken = localStorage.getItem('token')
+                    if (legacyToken) {
+                        console.log('Found legacy token, setting token state')
+                        const authTokens: AuthTokens = {
+                            access_token: legacyToken,
+                            refresh_token: '',
+                            token_type: 'Bearer',
+                            expires_in: 0
+                        }
+                        setTokens(authTokens)
+                        await fetchUserProfile(legacyToken)
+                    } else {
+                        // No tokens found - set loading to false
+                        setIsLoading(false)
+                    }
+                }
+            } catch (err) {
+                console.error('Auth initialization error:', err)
+                setIsLoading(false)
+            }
+        }
+
+        checkAuth()
+
+        // Clean up timer on unmount
+        return () => {
+            if (refreshTimerRef.current) {
+                clearTimeout(refreshTimerRef.current)
+                refreshTimerRef.current = null
+            }
+        }
+    }, []) // Empty dependency array to run only once on mount
+
+    // Refresh access token using refresh token
+    const refreshAccessToken = async (): Promise<string | null> => {
+        if (!tokens?.refresh_token) {
+            console.error('No refresh token available')
+            return null
+        }
+
+        try {
+            console.log('Refreshing access token')
+
+            const response = await fetch(`${API_URL}/auth/refresh`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ refresh_token: tokens.refresh_token })
+                // Removed credentials: 'include' to avoid CORS issues
+            })
+
+            // Check if the response can be parsed as JSON
+            let data
+            const contentType = response.headers.get('content-type')
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json()
+                console.log('Token refresh response:', data)
+            } else {
+                const text = await response.text()
+                console.log('Token refresh response (text):', text)
+                throw new Error('Invalid response format from server')
+            }
+
+            if (!response.ok) {
+                const errorMessage = data.message || data.error || `Token refresh failed with status ${response.status}`
+                console.error('Token refresh failed:', errorMessage)
+                throw new Error(errorMessage)
+            }
+
+            // Check if we received new tokens
+            if (data.access_token) {
+                // Update tokens in state and localStorage
+                const updatedTokens: AuthTokens = {
+                    ...tokens,
+                    access_token: data.access_token,
+                    // Update refresh_token if a new one was provided
+                    ...(data.refresh_token && { refresh_token: data.refresh_token }),
+                    // Update expires_in if provided
+                    ...(data.expires_in && { expires_in: data.expires_in })
+                }
+
+                localStorage.setItem('access_token', updatedTokens.access_token)
+                if (data.refresh_token) {
+                    localStorage.setItem('refresh_token', updatedTokens.refresh_token)
+                }
+                if (data.expires_in) {
+                    localStorage.setItem('expires_in', updatedTokens.expires_in.toString())
+                }
+
+                setTokens(updatedTokens)
+
+                // Set up a new refresh timer with the updated expiration
+                if (data.expires_in) {
+                    setupTokenRefreshTimer(data.expires_in)
+                }
+
+                return updatedTokens.access_token
+            } else {
+                throw new Error('No access token in refresh response')
+            }
+        } catch (err: unknown) {
+            console.error('Token refresh error:', err)
+
+            // If refresh fails, we should log the user out
+            if (err instanceof Error && (err.message.includes('expired') || err.message.includes('invalid'))) {
+                logout()
+            }
+
+            setError(err instanceof Error ? err.message : 'Failed to refresh access token')
+            return null
+        }
     }
+
+    // Assign the refreshAccessToken function to the ref
+    refreshAccessTokenRef.current = refreshAccessToken;
 
     // Login function
     const login = async (email: string, password: string) => {
@@ -346,9 +425,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         try {
             // Clear any existing refresh timer
-            if (refreshTimerId) {
-                clearTimeout(refreshTimerId)
-                setRefreshTimerId(null)
+            if (refreshTimerRef.current) {
+                clearTimeout(refreshTimerRef.current)
+                refreshTimerRef.current = null
             }
 
             if (tokens?.access_token) {
@@ -453,85 +532,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return response
     }
-
-    // Refresh access token using refresh token
-    const refreshAccessToken = async (): Promise<string | null> => {
-        if (!tokens?.refresh_token) {
-            console.error('No refresh token available')
-            return null
-        }
-
-        try {
-            console.log('Refreshing access token')
-
-            const response = await fetch(`${API_URL}/auth/refresh`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ refresh_token: tokens.refresh_token })
-                // Removed credentials: 'include' to avoid CORS issues
-            })
-
-            // Check if the response can be parsed as JSON
-            let data
-            const contentType = response.headers.get('content-type')
-            if (contentType && contentType.includes('application/json')) {
-                data = await response.json()
-                console.log('Token refresh response:', data)
-            } else {
-                const text = await response.text()
-                console.log('Token refresh response (text):', text)
-                throw new Error('Invalid response format from server')
-            }
-
-            if (!response.ok) {
-                const errorMessage = data.message || data.error || `Token refresh failed with status ${response.status}`
-                console.error('Token refresh failed:', errorMessage)
-                throw new Error(errorMessage)
-            }
-
-            // Check if we received new tokens
-            if (data.access_token) {
-                // Update tokens in state and localStorage
-                const updatedTokens: AuthTokens = {
-                    ...tokens,
-                    access_token: data.access_token,
-                    // Update refresh_token if a new one was provided
-                    ...(data.refresh_token && { refresh_token: data.refresh_token }),
-                    // Update expires_in if provided
-                    ...(data.expires_in && { expires_in: data.expires_in })
-                }
-
-                localStorage.setItem('access_token', updatedTokens.access_token)
-                if (data.refresh_token) {
-                    localStorage.setItem('refresh_token', updatedTokens.refresh_token)
-                }
-                if (data.expires_in) {
-                    localStorage.setItem('expires_in', updatedTokens.expires_in.toString())
-                }
-
-                setTokens(updatedTokens)
-                return updatedTokens.access_token
-            } else {
-                throw new Error('No access token in refresh response')
-            }
-        } catch (err: unknown) {
-            console.error('Token refresh error:', err)
-
-            // If refresh fails, we should log the user out
-            if (err instanceof Error && (err.message.includes('expired') || err.message.includes('invalid'))) {
-                await logout()
-            }
-
-            setError(err instanceof Error ? err.message : 'Failed to refresh access token')
-            return null
-        }
-    }
-
-    // Assign the refreshAccessToken function to the ref
-    refreshAccessTokenRef.current = refreshAccessToken;
 
     // Clear error state
     const clearError = () => {

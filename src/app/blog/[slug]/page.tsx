@@ -5,12 +5,17 @@ import BlogPostCard from '@/components/BlogPostCard';
 import ShareButtons from '@/components/ShareButtons';
 import { getPostBySlug, getPostContent, getRelatedPosts, formatDate } from '@/lib/blog';
 
+// Define the correct params type for Next.js App Router
+export interface BlogPostPageProps {
+    params: {
+        slug: string;
+    };
+}
+
 // This generates metadata for each blog post dynamically
 export async function generateMetadata({
     params
-}: {
-    params: { slug: string }
-}): Promise<Metadata> {
+}: BlogPostPageProps): Promise<Metadata> {
     const post = getPostBySlug(params.slug);
 
     if (!post) {
@@ -33,7 +38,7 @@ export async function generateMetadata({
     };
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default function BlogPostPage({ params }: BlogPostPageProps) {
     const post = getPostBySlug(params.slug);
     const postContent = getPostContent(params.slug);
 
