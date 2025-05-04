@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import AuthErrorMessage from "@/components/AuthErrorMessage";
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -47,6 +48,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            <AuthErrorMessage />
           </AuthProvider>
         </ThemeProvider>
       </body>

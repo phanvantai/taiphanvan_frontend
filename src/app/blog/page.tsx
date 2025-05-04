@@ -1,12 +1,10 @@
+'use client';
+
 import Link from "next/link";
-import type { Metadata } from "next/types";
 import { getAllPosts, getAllCategories } from "@/lib/blog";
 import BlogPostCard from "@/components/BlogPostCard";
-
-export const metadata: Metadata = {
-    title: "Blog | Tai Phan Van",
-    description: "Read all my latest blog posts about technology, design, and more.",
-};
+import CreateArticleButton from "@/components/CreateArticleButton";
+import "./blog.css";
 
 export default function BlogPage() {
     const blogPosts = getAllPosts();
@@ -25,6 +23,11 @@ export default function BlogPage() {
                     Thoughts, stories, and ideas on technology, design, and more.
                 </p>
             </header>
+
+            {/* Admin Create Button */}
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }} id="create-button-container">
+                <CreateArticleButton />
+            </div>
 
             {/* Categories filter */}
             <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
