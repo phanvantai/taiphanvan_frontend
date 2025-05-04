@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import '@/styles/auth-error.css';
@@ -17,6 +17,14 @@ const AuthErrorMessage: React.FC<AuthErrorMessageProps> = ({
     const [visible, setVisible] = useState(false);
     const [dismissing, setDismissing] = useState(false);
 
+    const handleDismiss = useCallback(() => {
+        setDismissing(true);
+        setTimeout(() => {
+            clearError();
+            setDismissing(false);
+        }, 300); // Match transition duration
+    }, [clearError]);
+
     useEffect(() => {
         if (error) {
             setVisible(true);
@@ -30,15 +38,7 @@ const AuthErrorMessage: React.FC<AuthErrorMessageProps> = ({
             setVisible(false);
             setDismissing(false);
         }
-    }, [error]);
-
-    const handleDismiss = () => {
-        setDismissing(true);
-        setTimeout(() => {
-            clearError();
-            setDismissing(false);
-        }, 300); // Match transition duration
-    };
+    }, [error, handleDismiss]);
 
     const handleRedirect = () => {
         clearError();

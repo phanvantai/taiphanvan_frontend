@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                         // If profile fetch fails, try to refresh the token
                         console.log('Attempting to refresh token during initialization')
-                        const newToken = await refreshAccessToken()
+                        const newToken = await refreshAccessTokenRef.current()
 
                         if (!newToken) {
                             // If refresh fails, clear tokens and set loading to false
@@ -719,7 +719,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 // Try to refresh the token
-                const newToken = await refreshAccessToken()
+                const newToken = await refreshAccessTokenRef.current()
 
                 if (newToken) {
                     console.log('Token refreshed successfully, retrying original request')
