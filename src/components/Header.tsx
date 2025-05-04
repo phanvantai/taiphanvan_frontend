@@ -107,10 +107,12 @@ export default function Header() {
                         <Link href="/" className="nav-link">
                             Home
                         </Link>
+                        <Link href="/news" className="nav-link">
+                            News
+                        </Link>
                         <Link href="/blog" className="nav-link">
                             Blog
                         </Link>
-
                         {isAuthenticated ? (
                             <div className="relative inline-block user-menu-container" ref={userMenuRef}>
                                 <button

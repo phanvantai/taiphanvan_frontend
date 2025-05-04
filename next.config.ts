@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  images: {
+    domains: ['source.unsplash.com'],
+  },
 };
 
 export default nextConfig;
