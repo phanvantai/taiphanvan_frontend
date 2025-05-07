@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import SmartImage from '@/components/SmartImage';
 
 export default function ProfilePage() {
-    const { user, isAuthenticated, isLoading, updateProfile, error, clearError } = useAuth();
+    const { user, isAuthenticated, isLoading, updateProfile, uploadAvatar, error, clearError } = useAuth();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -26,11 +29,14 @@ export default function ProfilePage() {
     // Load user data
     useEffect(() => {
         if (user) {
+            console.log('User data in profile page:', user);
+            console.log('Profile image URL:', user.profileImage);
+
             setFormData({
                 firstName: user.firstName || '',
                 lastName: user.lastName || '',
                 bio: user.bio || '',
-                profileImage: user.profileImage || ''
+                profileImage: '' // We keep this field in the state but don't use it for form submission
             });
         }
     }, [user]);
@@ -50,8 +56,8 @@ export default function ProfilePage() {
             await updateProfile({
                 firstName: formData.firstName || undefined,
                 lastName: formData.lastName || undefined,
-                bio: formData.bio || undefined,
-                profileImage: formData.profileImage || undefined
+                bio: formData.bio || undefined
+                // profileImage is now handled by the avatar upload functionality
             });
 
             setFormMsg({ type: 'success', message: 'Profile updated successfully!' });
@@ -140,6 +146,124 @@ export default function ProfilePage() {
                         }}>
                             Account Information
                         </h2>
+
+                        {/* Avatar Section */}
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            marginBottom: '2rem'
+                        }}>
+                            <div style={{
+                                position: 'relative',
+                                width: '150px',
+                                height: '150px',
+                                borderRadius: '50%',
+                                overflow: 'hidden',
+                                backgroundColor: 'var(--primary-color)',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginBottom: '1rem',
+                                border: '3px solid var(--border-color)',
+                                boxShadow: '0 4px 10px var(--shadow-color)'
+                            }}>
+                                {user.profileImage ? (
+                                    <SmartImage
+                                        src={user.profileImage}
+                                        alt={`${user.username}'s avatar`}
+                                        fill
+                                        style={{
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                ) : (
+                                    <span style={{
+                                        fontSize: '4rem',
+                                        fontWeight: 'bold',
+                                        color: 'white',
+                                        textTransform: 'uppercase'
+                                    }}>
+                                        {user.username.charAt(0)}
+                                    </span>
+                                )}
+
+                                {/* Edit Icon Overlay */}
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        right: 0,
+                                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                        width: '100%',
+                                        height: '40%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: isUploading ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        opacity: isUploading ? '0.7' : '0'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.opacity = isUploading ? '0.7' : '1';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.opacity = isUploading ? '0.7' : '0';
+                                    }}
+                                >
+                                    {isUploading ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                            <svg className="animate-spin" style={{ marginRight: '0.5rem', height: '1.25rem', width: '1.25rem' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span style={{ fontSize: '0.8rem' }}>Uploading...</span>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                            <i className="fas fa-camera" style={{ marginRight: '0.5rem' }}></i>
+                                            <span style={{ fontSize: '0.8rem' }}>Edit</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+
+                                    setIsUploading(true);
+                                    clearError?.();
+                                    setFormMsg({ type: '', message: '' });
+
+                                    try {
+                                        await uploadAvatar(file);
+                                        setFormMsg({
+                                            type: 'success',
+                                            message: 'Avatar uploaded successfully!'
+                                        });
+                                    } catch {
+                                        setFormMsg({
+                                            type: 'error',
+                                            message: error || 'Failed to upload avatar'
+                                        });
+                                    } finally {
+                                        setIsUploading(false);
+                                        // Clear the file input
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.value = '';
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
+
                         <div style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -341,49 +465,7 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        <div style={{ marginBottom: '2rem' }}>
-                            <label
-                                htmlFor="profileImage"
-                                style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '500',
-                                    color: 'var(--text-color)'
-                                }}
-                            >
-                                Profile Image URL
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '1rem',
-                                    transform: 'translateY(-50%)',
-                                    color: 'var(--text-muted-color)',
-                                    pointerEvents: 'none'
-                                }}>
-                                    <i className="fas fa-image"></i>
-                                </div>
-                                <input
-                                    id="profileImage"
-                                    name="profileImage"
-                                    type="text"
-                                    value={formData.profileImage}
-                                    onChange={handleChange}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.8rem 1rem 0.8rem 2.5rem',
-                                        borderRadius: '30px',
-                                        border: '1px solid var(--border-color)',
-                                        backgroundColor: 'var(--background-color)',
-                                        color: 'var(--text-color)',
-                                        outline: 'none',
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                    placeholder="https://example.com/your-image.jpg"
-                                />
-                            </div>
-                        </div>
+                        {/* Profile Image URL field removed as we now handle direct uploads */}
 
                         <button
                             type="submit"

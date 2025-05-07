@@ -10,7 +10,26 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['source.unsplash.com'],
+    domains: [
+      'source.unsplash.com',
+      'res.cloudinary.com',
+      'images.unsplash.com',
+      'picsum.photos',
+      'via.placeholder.com',
+      'cdn.pixabay.com',
+      'images.pexels.com'
+      // Add other common image hosting domains as needed
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      }
+    ],
   },
 };
 

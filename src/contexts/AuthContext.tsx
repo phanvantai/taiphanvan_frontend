@@ -29,6 +29,7 @@ interface AuthContextType {
     register: (username: string, email: string, password: string, firstName?: string, lastName?: string) => Promise<void>
     logout: () => Promise<void>
     updateProfile: (data: Partial<User>) => Promise<void>
+    uploadAvatar: (file: File) => Promise<void>
     refreshAccessToken: () => Promise<string | null>
     authFetch: (url: string, options?: RequestInit) => Promise<Response>
     error: string | null
@@ -157,14 +158,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // If the user data is nested in a 'user' or 'data' field, extract it
             const userObject = userData.user || userData.data || userData
 
+            console.log('Raw API response:', userData);
+            console.log('Extracted user object:', userObject);
+
             if (!userObject || typeof userObject !== 'object') {
                 console.error('Invalid user data format:', userData)
                 throw new Error('Invalid user data format received')
             }
 
+            // Map API response fields (which might be snake_case) to our User interface fields (camelCase)
+            const mappedUser: User = {
+                id: userObject.id,
+                username: userObject.username,
+                email: userObject.email,
+                firstName: userObject.firstName || userObject.first_name || '',
+                lastName: userObject.lastName || userObject.last_name || '',
+                role: userObject.role,
+                profileImage: userObject.profileImage || userObject.profile_image || '',
+                bio: userObject.bio || ''
+            }
+
+            console.log('Mapped user object with profileImage:', mappedUser);
+
             // Clear any previous errors since we successfully got the profile
             setError(null)
-            setUser(userObject)
+            setUser(mappedUser)
         } catch (err) {
             console.error('Failed to fetch user profile:', err)
 
@@ -671,6 +689,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
+    // Upload avatar image
+    const uploadAvatar = async (file: File) => {
+        if (!tokens?.access_token) {
+            setError('You must be logged in to upload an avatar')
+            return
+        }
+
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            // Create FormData object
+            const formData = new FormData()
+            formData.append('avatar', file)
+
+            // Get the latest token from localStorage
+            const currentAccessToken = localStorage.getItem('access_token')
+            const currentTokenType = localStorage.getItem('token_type') || 'Bearer'
+
+            if (!currentAccessToken) {
+                throw new Error('Authentication required. Please log in again.')
+            }
+
+            // Make the request with FormData
+            const response = await fetch(`${API_URL}/profile/avatar`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `${currentTokenType} ${currentAccessToken}`,
+                    'Accept': 'application/json'
+                    // Note: Don't set Content-Type header when using FormData
+                },
+                body: formData
+            })
+
+            const responseData = await response.json()
+
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Failed to upload avatar')
+            }
+
+            // Update the user state with the new avatar URL
+            setUser(prevUser => {
+                if (!prevUser) return null
+                return {
+                    ...prevUser,
+                    profileImage: responseData.profileImage || responseData.profile_image || responseData.avatar || responseData.url || prevUser.profileImage
+                }
+            })
+
+            return responseData
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred while uploading avatar')
+            throw err
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     // Create an authenticated fetch that handles token refreshing
     const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
         // Get the latest token from localStorage
@@ -794,6 +870,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         updateProfile,
+        uploadAvatar,
         refreshAccessToken,
         authFetch,
         error,
