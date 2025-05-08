@@ -1,10 +1,10 @@
 import Link from "next/link";
 import BlogPostCard from "@/components/BlogPostCard";
-import { getFeaturedPosts } from "@/lib/blog";
+import { fetchPosts } from "@/lib/blog";
 
-export default function Home() {
-  // Get featured blog posts using our utility function
-  const featuredPosts = getFeaturedPosts(3);
+export default async function Home() {
+  // Get featured blog posts from the API
+  const featuredPosts = await fetchPosts(3, 'published');
 
   return (
     <div className="space-y-16">
@@ -55,9 +55,13 @@ export default function Home() {
         </div>
 
         <div className="blog-grid">
-          {featuredPosts.map(post => (
-            <BlogPostCard key={post.id} post={post} />
-          ))}
+          {featuredPosts.length > 0 ? (
+            featuredPosts.map(post => (
+              <BlogPostCard key={post.id} post={post} />
+            ))
+          ) : (
+            <p>No posts available at the moment. Check back later!</p>
+          )}
         </div>
       </section>
 

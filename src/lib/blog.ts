@@ -1,5 +1,46 @@
 import { BlogPost } from '@/components/BlogPostCard';
 
+// API response interfaces
+export interface Post {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  cover: string;
+  status: string;
+  user_id: number;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    bio: string;
+    role: string;
+    profile_image: string;
+    created_at: string;
+    updated_at: string;
+  };
+  tags: {
+    id: number;
+    name: string;
+    posts: null;
+  }[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostsResponse {
+  meta: {
+    lastPage: number;
+    limit: number;
+    page: number;
+    total: number;
+  };
+  posts: Post[];
+}
+
 // Mock data for blog posts - in a real app this would come from a CMS or database
 const blogPostsData: BlogPost[] = [
     {
@@ -171,6 +212,50 @@ const blogPostsContent: Record<string, BlogPostContent> = {
         categories: ["Design", "CSS"]
     }
 };
+
+/**
+ * Fetch posts from the API
+ */
+export async function fetchPosts(limit: number = 3, status: string = 'published'): Promise<BlogPost[]> {
+  try {
+    // Use environment variable for API URL instead of hardcoded localhost
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876/api';
+    
+    const response = await fetch(
+      `${API_URL}/posts?limit=${limit}&status=${status}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+        next: { revalidate: 60 } // Revalidate every 60 seconds
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch posts: ${response.status}`);
+    }
+
+    const data: PostsResponse = await response.json();
+    
+    // Transform API response to match BlogPost interface
+    return data.posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      excerpt: post.excerpt || post.content.substring(0, 150) + '...', // Use excerpt or truncated content
+      date: formatDate(post.created_at),
+      slug: post.slug,
+      categories: post.tags.map(tag => {
+        // Clean up tag names (they appear to have JSON formatting in them)
+        const cleanName = tag.name.replace(/[\[\]"]/g, '');
+        return cleanName;
+      }),
+      coverImage: post.cover
+    }));
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    return []; // Return empty array on error
+  }
+}
 
 /**
  * Get all blog posts with summary information

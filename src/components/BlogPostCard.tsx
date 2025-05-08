@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import './blog-post-card.css'; // Add a new CSS file for specific BlogPostCard styles
 
 export interface BlogPost {
     id: number;
@@ -19,16 +20,16 @@ interface BlogPostCardProps {
 export default function BlogPostCard({ post, variant = 'default' }: BlogPostCardProps) {
     if (variant === 'compact') {
         return (
-            <article className="blog-post" style={{ padding: '1.5rem' }}>
+            <article className="blog-post" style={{ padding: '1.0rem' }}>
                 <div className="blog-post-meta">
-                    <span>
-                        <i className="far fa-calendar"></i>
-                        {post.date}
+                    <span className="meta-item">
+                        <i className="far fa-calendar meta-icon"></i>
+                        <span className="meta-text">{post.date}</span>
                     </span>
                     {post.categories.length > 0 && (
-                        <span>
-                            <i className="fas fa-tag"></i>
-                            {post.categories[0]}
+                        <span className="meta-item">
+                            <i className="fas fa-tag meta-icon"></i>
+                            <span className="meta-text">{post.categories[0]}</span>
                         </span>
                     )}
                 </div>
@@ -45,13 +46,15 @@ export default function BlogPostCard({ post, variant = 'default' }: BlogPostCard
         <article className="blog-post">
             <div className="blog-post-image">
                 {post.coverImage ? (
-                    <Image
-                        src={post.coverImage}
-                        alt={`Cover image for ${post.title}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover"
-                    />
+                    <div className="image-container">
+                        <Image
+                            src={post.coverImage}
+                            alt={`Cover image for ${post.title}`}
+                            width={400}
+                            height={250}
+                            className="blog-image"
+                        />
+                    </div>
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-background-alt-color">
                         <i className="fas fa-image fa-3x" style={{ color: 'var(--text-muted-color)' }}></i>
@@ -60,15 +63,17 @@ export default function BlogPostCard({ post, variant = 'default' }: BlogPostCard
             </div>
             <div className="blog-post-content">
                 <div className="blog-post-meta">
-                    <span>
-                        <i className="far fa-calendar"></i>
-                        {post.date}
+                    <span className="meta-item">
+                        <i className="far fa-calendar meta-icon"></i>
+                        <span className="meta-text">{post.date}</span>
                     </span>
                     {post.categories.length > 0 && (
-                        <span>
-                            <i className="fas fa-tag"></i>
-                            {post.categories[0]}
-                            {post.categories.length > 1 && ` +${post.categories.length - 1}`}
+                        <span className="meta-item">
+                            <i className="fas fa-tag meta-icon"></i>
+                            <span className="meta-text">
+                                {post.categories[0]}
+                                {post.categories.length > 1 && ` +${post.categories.length - 1}`}
+                            </span>
                         </span>
                     )}
                 </div>
