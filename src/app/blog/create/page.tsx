@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
 
 export default function CreateArticlePage() {
     const { user, isAuthenticated, isLoading } = useAuth();
@@ -51,6 +50,10 @@ export default function CreateArticlePage() {
     if (!isAuthenticated || user?.role !== 'admin') {
         return null;
     }
+
+    const handleCancel = () => {
+        router.back();
+    };
 
     return (
         <div className="max-w-4xl mx-auto py-12 px-4">
@@ -259,8 +262,9 @@ export default function CreateArticlePage() {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-                        <Link
-                            href="/blog"
+                        <button
+                            type="button"
+                            onClick={handleCancel}
                             style={{
                                 padding: '0.75rem 1.5rem',
                                 borderRadius: '8px',
@@ -270,11 +274,12 @@ export default function CreateArticlePage() {
                                 textDecoration: 'none',
                                 textAlign: 'center',
                                 fontWeight: '500',
-                                flex: '1'
+                                flex: '1',
+                                cursor: 'pointer'
                             }}
                         >
                             Cancel
-                        </Link>
+                        </button>
                         <button
                             type="submit"
                             style={{

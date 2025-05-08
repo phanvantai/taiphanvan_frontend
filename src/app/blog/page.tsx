@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { getAllPosts, getAllCategories } from "@/lib/blog";
 import BlogPostCard from "@/components/BlogPostCard";
-import CreateArticleButton from "@/components/CreateArticleButton";
 import "./blog.css";
 
 export default function BlogPage() {
@@ -23,11 +22,6 @@ export default function BlogPage() {
                     Thoughts, stories, and ideas on technology, design, and more.
                 </p>
             </header>
-
-            {/* Admin Create Button */}
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }} id="create-button-container">
-                <CreateArticleButton />
-            </div>
 
             {/* Categories filter */}
             <div style={{ marginBottom: '3rem', textAlign: 'center' }}>

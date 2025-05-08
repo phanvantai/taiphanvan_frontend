@@ -108,9 +108,9 @@ export default function Header() {
                         <Link href="/" className="nav-link">
                             Home
                         </Link>
-                        <Link href="/news" className="nav-link">
+                        {/* <Link href="/news" className="nav-link">
                             News
-                        </Link>
+                        </Link> */}
                         <Link href="/blog" className="nav-link">
                             Blog
                         </Link>
