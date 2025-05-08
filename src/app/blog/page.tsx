@@ -1,13 +1,24 @@
-'use client';
-
 import Link from "next/link";
-import { getAllPosts, getAllCategories } from "@/lib/blog";
+import { getAllPosts, getAllTags } from "@/lib/blog";
 import BlogPostCard from "@/components/BlogPostCard";
 import "./blog.css";
 
-export default function BlogPage() {
-    const blogPosts = getAllPosts();
-    const categories = getAllCategories();
+export default async function BlogPage({
+    searchParams,
+}: {
+    searchParams: { [key: string]: string | string[] | undefined };
+}) {
+    // Get the tag filter from the URL if present
+    const tagFilter = searchParams.tag as string | undefined;
+
+    // Fetch all posts and tags
+    const blogPosts = await getAllPosts();
+    const tags = await getAllTags();
+
+    // Filter posts by tag if a tag is selected
+    const filteredPosts = tagFilter
+        ? blogPosts.filter(post => post.tags.includes(tagFilter))
+        : blogPosts;
 
     return (
         <div className="blog-container">
@@ -23,31 +34,37 @@ export default function BlogPage() {
                 </p>
             </header>
 
-            {/* Categories filter */}
+            {/* Tags filter */}
             <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
                 <div className="filter-buttons">
                     <Link
                         href="/blog"
-                        className="filter-btn active"
+                        className={`filter-btn ${!tagFilter ? 'active' : ''}`}
                     >
                         All
                     </Link>
-                    {categories.map(category => (
+                    {tags.map(tag => (
                         <Link
-                            key={category}
-                            href={`/blog?category=${category}`}
-                            className="filter-btn"
+                            key={tag}
+                            href={`/blog?tag=${tag}`}
+                            className={`filter-btn ${tagFilter === tag ? 'active' : ''}`}
                         >
-                            {category}
+                            {tag}
                         </Link>
                     ))}
                 </div>
             </div>
 
             <div className="blog-grid">
-                {blogPosts.map(post => (
-                    <BlogPostCard key={post.id} post={post} />
-                ))}
+                {filteredPosts.length > 0 ? (
+                    filteredPosts.map(post => (
+                        <BlogPostCard key={post.id} post={post} />
+                    ))
+                ) : (
+                    <p style={{ textAlign: 'center', gridColumn: '1 / -1' }}>
+                        No posts found {tagFilter ? `with tag "${tagFilter}"` : ''}.
+                    </p>
+                )}
             </div>
         </div>
     );

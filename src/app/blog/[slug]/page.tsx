@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { Metadata } from 'next/types';
 import BlogPostCard from '@/components/BlogPostCard';
 import ShareButtons from '@/components/ShareButtons';
-import { getPostBySlug, getPostContent, getRelatedPosts, formatDate } from '@/lib/blog';
+import { getPostBySlug, getRelatedPosts } from '@/lib/blog';
+import { markdownToHtml } from '@/lib/markdown';
 
 // This generates metadata for each blog post dynamically
 export async function generateMetadata({
@@ -11,7 +12,9 @@ export async function generateMetadata({
 }: {
     params: { slug: string }
 }): Promise<Metadata> {
-    const post = getPostBySlug(params.slug);
+    // Create a local copy of the params to ensure it's properly resolved
+    const resolvedParams = await Promise.resolve(params);
+    const post = await getPostBySlug(resolvedParams.slug);
 
     if (!post) {
         return {
@@ -28,46 +31,30 @@ export async function generateMetadata({
             type: 'article',
             publishedTime: post.date,
             authors: ['Tai Phan Van'],
-            tags: post.categories
+            tags: post.tags
         }
     };
 }
+
 // Define the page component
-export default function BlogPostPage(props: {
+export default async function BlogPostPage(props: {
     params: { slug: string }
 }) {
-    const { slug } = props.params;
-    const post = getPostBySlug(slug);
-    const postContent = getPostContent(slug);
+    // Create a local copy of the params to ensure it's properly resolved
+    const params = await Promise.resolve(props.params);
+    const { slug } = params;
 
-    if (!post || !postContent) {
+    const post = await getPostBySlug(slug);
+
+    if (!post) {
         notFound();
     }
 
-    // Get related posts based on categories
-    const relatedPosts = getRelatedPosts(slug, 3);
+    // Get related posts based on tags
+    const relatedPosts = await getRelatedPosts(slug, 3);
 
-    // In a real app, you would process markdown here or use a library like MDX
-    const contentHtml = postContent.content
-        .split('\n')
-        .map(line => {
-            if (line.startsWith('# ')) {
-                return `<h1 class="blog-post-content h1">${line.replace('# ', '')}</h1>`;
-            } else if (line.startsWith('## ')) {
-                return `<h2 class="blog-post-content h2">${line.replace('## ', '')}</h2>`;
-            } else if (line.startsWith('- ')) {
-                return `<li class="blog-post-content li">${line.replace('- ', '')}</li>`;
-            } else if (line.startsWith('\`\`\`')) {
-                return line.includes('bash')
-                    ? '<pre class="blog-post-content pre"><code>'
-                    : '</code></pre>';
-            } else if (line.trim() === '') {
-                return '<br/>';
-            } else {
-                return `<p class="blog-post-content p">${line}</p>`;
-            }
-        })
-        .join('');
+    // Convert markdown content to HTML using our markdown utility
+    const contentHtml = await markdownToHtml(post.content);
 
     // Get the canonical URL for this post
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://taiphanvan.dev';
@@ -83,19 +70,19 @@ export default function BlogPostPage(props: {
                 <div className="blog-post-meta">
                     <span>
                         <i className="far fa-calendar"></i>
-                        {formatDate(post.date)}
+                        {post.date}
                     </span>
                     <span>
-                        <i className="fas fa-folder"></i>
-                        {post.categories.map((category, index) => (
-                            <span key={category}>
+                        <i className="fas fa-tag"></i>
+                        {post.tags.map((tag, index) => (
+                            <span key={tag}>
                                 <Link
-                                    href={`/blog?category=${encodeURIComponent(category)}`}
+                                    href={`/blog?tag=${encodeURIComponent(tag)}`}
                                     style={{ color: 'var(--text-muted-color)' }}
                                 >
-                                    {category}
+                                    {tag}
                                 </Link>
-                                {index < post.categories.length - 1 ? ', ' : ''}
+                                {index < post.tags.length - 1 ? ', ' : ''}
                             </span>
                         ))}
                     </span>

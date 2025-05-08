@@ -1,5 +1,3 @@
-import { BlogPost } from '@/components/BlogPostCard';
-
 // API response interfaces
 export interface Post {
   id: number;
@@ -31,6 +29,18 @@ export interface Post {
   updated_at: string;
 }
 
+// Formatted post type for display in components
+export interface FormattedPost {
+  id: number;
+  title: string;
+  excerpt: string;
+  date: string;
+  slug: string;
+  tags: string[]; // Changed from categories to tags
+  coverImage: string;
+  content: string;
+}
+
 export interface PostsResponse {
   meta: {
     lastPage: number;
@@ -41,186 +51,14 @@ export interface PostsResponse {
   posts: Post[];
 }
 
-// Mock data for blog posts - in a real app this would come from a CMS or database
-const blogPostsData: BlogPost[] = [
-    {
-        id: 1,
-        title: "Getting Started with Next.js",
-        excerpt: "Learn how to build modern web applications with Next.js and React.",
-        date: "April 28, 2025",
-        slug: "getting-started-with-nextjs",
-        categories: ["Development", "Next.js"],
-        coverImage: "/images/blog/nextjs-cover.jpg"
-    },
-    {
-        id: 2,
-        title: "Styling with Tailwind CSS",
-        excerpt: "Discover how to create beautiful, responsive designs with Tailwind CSS.",
-        date: "April 25, 2025",
-        slug: "styling-with-tailwind-css",
-        categories: ["Design", "CSS"],
-        coverImage: "/images/blog/tailwind-cover.jpg"
-    },
-    {
-        id: 3,
-        title: "Optimizing for SEO",
-        excerpt: "Tips and tricks to make your blog more discoverable by search engines.",
-        date: "April 20, 2025",
-        slug: "optimizing-for-seo",
-        categories: ["SEO", "Marketing"],
-        coverImage: "/images/blog/seo-cover.jpg"
-    },
-    {
-        id: 4,
-        title: "Working with TypeScript",
-        excerpt: "How TypeScript improves your development experience and code quality.",
-        date: "April 15, 2025",
-        slug: "working-with-typescript",
-        categories: ["Development", "TypeScript"],
-        coverImage: "/images/blog/typescript-cover.jpg"
-    },
-    {
-        id: 5,
-        title: "Building Accessible Websites",
-        excerpt: "Best practices for creating web experiences that everyone can use.",
-        date: "April 10, 2025",
-        slug: "building-accessible-websites",
-        categories: ["Accessibility", "Design"],
-        coverImage: "/images/blog/accessibility-cover.jpg"
-    },
-    {
-        id: 6,
-        title: "Responsive Design Principles",
-        excerpt: "Creating websites that work well on any device size.",
-        date: "April 5, 2025",
-        slug: "responsive-design-principles",
-        categories: ["Design", "CSS", "Mobile"],
-        coverImage: "/images/blog/responsive-cover.jpg"
-    }
-];
-
-// Detailed content for blog posts - in a real app this would also come from a CMS
-interface BlogPostContent {
-    title: string;
-    date: string;
-    content: string;
-    categories: string[];
-}
-
-const blogPostsContent: Record<string, BlogPostContent> = {
-    'getting-started-with-nextjs': {
-        title: "Getting Started with Next.js",
-        date: "April 28, 2025",
-        content: `
-      # Getting Started with Next.js
-
-      Next.js is a powerful React framework that makes it easy to build server-rendered 
-      applications, static websites, and more.
-
-      ## Why Next.js?
-
-      Next.js provides a great developer experience with features like:
-
-      - Server-side rendering for improved SEO and performance
-      - Static site generation for blazing-fast websites
-      - Automatic code splitting for efficient loading
-      - Built-in CSS and Sass support
-      - API routes for backend functionality
-      - Fast refresh for quick iterations
-
-      ## Setting Up a Project
-
-      Creating a new Next.js project is as simple as running:
-
-      \`\`\`bash
-      npx create-next-app@latest my-app
-      \`\`\`
-
-      This will set up a new project with all the necessary configurations.
-
-      ## Basic Routing
-
-      Next.js has a file-system based router. Files in the \`app\` directory automatically 
-      become routes. For example:
-
-      - \`app/page.tsx\` → \`/\`
-      - \`app/about/page.tsx\` → \`/about\`
-      - \`app/blog/[slug]/page.tsx\` → \`/blog/:slug\`
-
-      ## Conclusion
-
-      Next.js is an excellent choice for building modern web applications. Its features 
-      make it easy to create performant, SEO-friendly websites with a great developer 
-      experience.
-    `,
-        categories: ["Development", "Next.js"]
-    },
-    'styling-with-tailwind-css': {
-        title: "Styling with Tailwind CSS",
-        date: "April 25, 2025",
-        content: `
-      # Styling with Tailwind CSS
-
-      Tailwind CSS is a utility-first CSS framework that allows you to build custom designs 
-      without leaving your HTML.
-
-      ## Why Tailwind?
-
-      Tailwind provides several advantages:
-
-      - No more naming CSS classes
-      - Consistent design system
-      - Responsive design made easy
-      - Dark mode with minimal effort
-      - Highly customizable
-
-      ## Getting Started
-
-      To add Tailwind to your Next.js project:
-
-      \`\`\`bash
-      npm install -D tailwindcss postcss autoprefixer
-      npx tailwindcss init -p
-      \`\`\`
-
-      ## Example Usage
-
-      Instead of writing custom CSS:
-
-      \`\`\`css
-      .button {
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        background-color: blue;
-        color: white;
-      }
-      \`\`\`
-
-      With Tailwind, you can add classes directly to your HTML:
-
-      \`\`\`html
-      <button class="px-4 py-2 rounded bg-blue-500 text-white">
-        Click me
-      </button>
-      \`\`\`
-
-      ## Conclusion
-
-      Tailwind CSS offers a different approach to styling that can significantly speed up 
-      your development process while keeping your designs consistent.
-    `,
-        categories: ["Design", "CSS"]
-    }
-};
-
 /**
  * Fetch posts from the API
  */
-export async function fetchPosts(limit: number = 3, status: string = 'published'): Promise<BlogPost[]> {
+export async function fetchPosts(limit: number = 3, status: string = 'published'): Promise<FormattedPost[]> {
   try {
     // Use environment variable for API URL instead of hardcoded localhost
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876/api';
-    
+
     const response = await fetch(
       `${API_URL}/posts?limit=${limit}&status=${status}`,
       {
@@ -236,20 +74,21 @@ export async function fetchPosts(limit: number = 3, status: string = 'published'
     }
 
     const data: PostsResponse = await response.json();
-    
-    // Transform API response to match BlogPost interface
+
+    // Transform API response to match FormattedPost interface
     return data.posts.map(post => ({
       id: post.id,
       title: post.title,
       excerpt: post.excerpt || post.content.substring(0, 150) + '...', // Use excerpt or truncated content
       date: formatDate(post.created_at),
       slug: post.slug,
-      categories: post.tags.map(tag => {
+      tags: post.tags.map(tag => {
         // Clean up tag names (they appear to have JSON formatting in them)
         const cleanName = tag.name.replace(/[\[\]"]/g, '');
         return cleanName;
       }),
-      coverImage: post.cover
+      coverImage: post.cover,
+      content: post.content // Include content field
     }));
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -260,77 +99,127 @@ export async function fetchPosts(limit: number = 3, status: string = 'published'
 /**
  * Get all blog posts with summary information
  */
-export function getAllPosts(): BlogPost[] {
-    // In a real app, this would fetch from an API or database
-    return blogPostsData;
+export async function getAllPosts(): Promise<FormattedPost[]> {
+  // Now fetch from the API instead of using mock data
+  return fetchPosts(100); // Get all posts with a high limit
 }
 
 /**
  * Get featured posts (most recent posts)
  */
-export function getFeaturedPosts(count: number = 3): BlogPost[] {
-    return getAllPosts().slice(0, count);
+export async function getFeaturedPosts(count: number = 3): Promise<FormattedPost[]> {
+  const posts = await fetchPosts(count);
+  return posts;
 }
 
 /**
  * Get a single post by slug
  */
-export function getPostBySlug(slug: string): BlogPost | undefined {
-    return getAllPosts().find(post => post.slug === slug);
+export async function getPostBySlug(slug: string): Promise<FormattedPost | null> {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876/api';
+
+    const response = await fetch(
+      `${API_URL}/posts/slug/${slug}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+        next: { revalidate: 60 }
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch post: ${response.status}`);
+    }
+
+    const post: Post = await response.json();
+
+    return {
+      id: post.id,
+      title: post.title,
+      excerpt: post.excerpt || post.content.substring(0, 150) + '...', // Use excerpt or truncated content
+      date: formatDate(post.created_at),
+      slug: post.slug,
+      tags: post.tags.map(tag => {
+        // Clean up tag names (they appear to have JSON formatting in them)
+        const cleanName = tag.name.replace(/[\[\]"]/g, '');
+        return cleanName;
+      }),
+      coverImage: post.cover,
+      content: post.content
+    };
+  } catch (error) {
+    console.error(`Error fetching post by slug ${slug}:`, error);
+    return null;
+  }
 }
 
 /**
- * Get detailed post content by slug
+ * Get related posts based on tags (excluding the current post)
  */
-export function getPostContent(slug: string): BlogPostContent | undefined {
-    return blogPostsContent[slug];
-}
+export async function getRelatedPosts(slug: string, count: number = 3): Promise<FormattedPost[]> {
+  try {
+    const currentPost = await getPostBySlug(slug);
+    if (!currentPost || !currentPost.tags || currentPost.tags.length === 0) {
+      return [];
+    }
 
-/**
- * Get related posts based on categories (excluding the current post)
- */
-export function getRelatedPosts(slug: string, count: number = 3): BlogPost[] {
-    const currentPost = getPostBySlug(slug);
-    if (!currentPost) return [];
+    // Get all posts
+    const allPosts = await getAllPosts();
 
-    const relatedPosts = getAllPosts()
-        .filter(post => {
-            // Exclude current post
-            if (post.slug === slug) return false;
+    // Filter related posts based on matching tags
+    const relatedPosts = allPosts
+      .filter(post => {
+        // Exclude current post
+        if (post.slug === slug) return false;
 
-            // Check if any categories match
-            return post.categories.some(category =>
-                currentPost.categories.includes(category)
-            );
-        })
-        .slice(0, count);
+        // Check if any tags match
+        return post.tags.some(tag =>
+          currentPost.tags.includes(tag)
+        );
+      })
+      .slice(0, count);
 
     return relatedPosts;
+  } catch (error) {
+    console.error(`Error fetching related posts for slug ${slug}:`, error);
+    return [];
+  }
 }
 
 /**
- * Get all unique categories from blog posts
+ * Get all unique tags from blog posts
  */
-export function getAllCategories(): string[] {
-    const categories = new Set<string>();
+export async function getAllTags(): Promise<string[]> {
+  try {
+    const posts = await getAllPosts();
+    const tags = new Set<string>();
 
-    getAllPosts().forEach(post => {
-        post.categories.forEach(category => {
-            categories.add(category);
-        });
+    posts.forEach(post => {
+      post.tags.forEach(tag => {
+        tags.add(tag);
+      });
     });
 
-    return Array.from(categories).sort();
+    return Array.from(tags).sort();
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    return [];
+  }
 }
 
 /**
  * Format a date string nicely
  */
 export function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-    }).format(date);
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(date);
 }

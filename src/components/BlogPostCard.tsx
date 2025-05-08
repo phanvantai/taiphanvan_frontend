@@ -1,19 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import './blog-post-card.css'; // Add a new CSS file for specific BlogPostCard styles
-
-export interface BlogPost {
-    id: number;
-    title: string;
-    excerpt: string;
-    date: string;
-    slug: string;
-    categories: string[];
-    coverImage?: string;
-}
+import './blog-post-card.css';
+import { FormattedPost } from '@/lib/blog';
 
 interface BlogPostCardProps {
-    post: BlogPost;
+    post: FormattedPost;
     variant?: 'default' | 'compact';
 }
 
@@ -26,10 +17,10 @@ export default function BlogPostCard({ post, variant = 'default' }: BlogPostCard
                         <i className="far fa-calendar meta-icon"></i>
                         <span className="meta-text">{post.date}</span>
                     </span>
-                    {post.categories.length > 0 && (
+                    {post.tags.length > 0 && (
                         <span className="meta-item">
                             <i className="fas fa-tag meta-icon"></i>
-                            <span className="meta-text">{post.categories[0]}</span>
+                            <span className="meta-text">{post.tags[0]}</span>
                         </span>
                     )}
                 </div>
@@ -67,12 +58,12 @@ export default function BlogPostCard({ post, variant = 'default' }: BlogPostCard
                         <i className="far fa-calendar meta-icon"></i>
                         <span className="meta-text">{post.date}</span>
                     </span>
-                    {post.categories.length > 0 && (
+                    {post.tags.length > 0 && (
                         <span className="meta-item">
                             <i className="fas fa-tag meta-icon"></i>
                             <span className="meta-text">
-                                {post.categories[0]}
-                                {post.categories.length > 1 && ` +${post.categories.length - 1}`}
+                                {post.tags[0]}
+                                {post.tags.length > 1 && ` +${post.tags.length - 1}`}
                             </span>
                         </span>
                     )}
