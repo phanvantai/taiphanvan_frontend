@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import ThemeToggle from './ThemeToggle';
+import ColorPicker from './ColorPicker';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -107,10 +108,12 @@ export default function Header() {
                         <Link href="/" className="nav-link">
                             Home
                         </Link>
+                        {/* <Link href="/news" className="nav-link">
+                            News
+                        </Link> */}
                         <Link href="/blog" className="nav-link">
                             Blog
                         </Link>
-
                         {isAuthenticated ? (
                             <div className="relative inline-block user-menu-container" ref={userMenuRef}>
                                 <button
@@ -155,13 +158,15 @@ export default function Header() {
                                     <div className="user-dropdown">
                                         <div className="user-dropdown-header">
                                             {user?.profileImage ? (
-                                                <Image
-                                                    src={user.profileImage}
-                                                    alt={user.username}
-                                                    width={48}
-                                                    height={48}
-                                                    className="rounded-full"
-                                                />
+                                                <div className="user-dropdown-avatar">
+                                                    <Image
+                                                        src={user.profileImage}
+                                                        alt={user.username}
+                                                        width={48}
+                                                        height={48}
+                                                        className="rounded-full"
+                                                    />
+                                                </div>
                                             ) : (
                                                 <div className="user-dropdown-avatar-placeholder">
                                                     {user?.username?.charAt(0).toUpperCase() || 'A'}
@@ -233,7 +238,11 @@ export default function Header() {
                             </>
                         )}
 
-                        <ThemeToggle />
+                        <div className="theme-toggle-wrapper">
+                            <ThemeToggle />
+                        </div>
+
+                        <ColorPicker />
                     </nav>
                 </div>
             </header>
@@ -477,6 +486,24 @@ export default function Header() {
                     margin-bottom: 0;
                 }
                 
+                .user-dropdown-avatar {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    margin-right: 1rem;
+                    border: 2px solid var(--primary-color);
+                    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+                    transition: all 0.3s ease;
+                    position: relative;
+                }
+                
+                .user-dropdown-avatar:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+                    border-color: var(--secondary-color);
+                }
+                
                 .user-dropdown-avatar-placeholder {
                     width: 48px;
                     height: 48px;
@@ -489,6 +516,15 @@ export default function Header() {
                     font-weight: bold;
                     font-size: 1.25rem;
                     margin-right: 1rem;
+                    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+                    transition: all 0.3s ease;
+                    border: 2px solid transparent;
+                }
+                
+                .user-dropdown-avatar-placeholder:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+                    background-color: var(--secondary-color);
                 }
                 
                 .user-dropdown-info {
@@ -597,6 +633,149 @@ export default function Header() {
                     to { transform: translateY(0); opacity: 1; }
                 }
                 
+                /* Theme Toggle Wrapper */
+                .theme-toggle-wrapper {
+                    margin-right: 1rem;
+                    display: inline-flex;
+                    align-items: center;
+                    vertical-align: middle;
+                }
+                
+                /* Color picker container */
+                .color-picker {
+                    display: inline-flex;
+                    align-items: center;
+                    vertical-align: middle;
+                }
+                
+                /* Make theme toggle and color picker visually consistent */
+                .theme-toggle-wrapper .theme-toggle {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    border: 1px solid var(--border-color);
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                }
+                
+                /* Add hover animation to theme toggle similar to color picker */
+                .theme-toggle-wrapper .theme-toggle:hover {
+                    transform: scale(1.1);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                }
+                
+                /* Adjust color picker size to 32px */
+                .color-picker .color-toggle {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    border: 1px solid var(--border-color);
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                }
+                
+                /* Enhanced hover effect for color picker */
+                .color-picker .color-toggle:hover {
+                    transform: scale(1.1);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                }
+                
+                /* Adjust icon size in color picker */
+                .color-picker .color-toggle i {
+                    font-size: 0.9rem;
+                }
+                
+                /* Color Picker Styles */
+                .color-picker-container {
+                    position: relative;
+                    margin-right: 0.75rem;
+                }
+                
+                .color-picker-button {
+                    display: flex;
+                    align-items: center;
+                    padding: 0.5rem;
+                    background-color: var(--background-alt-color);
+                    border: 1px solid var(--border-color);
+                    border-radius: 30px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                
+                .color-picker-button:hover {
+                    background-color: var(--card-bg-color);
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                }
+                
+                .color-indicator {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    margin-right: 0.5rem;
+                    border: 2px solid var(--background-color);
+                    transition: all 0.3s ease;
+                }
+                
+                .color-dropdown {
+                    position: absolute;
+                    right: 0;
+                    top: calc(100% + 0.5rem);
+                    width: 220px;
+                    background-color: var(--card-bg-color);
+                    border-radius: 10px;
+                    box-shadow: 0 5px 15px var(--shadow-color);
+                    border: 1px solid var(--border-color);
+                    z-index: 50;
+                    overflow: hidden;
+                    animation: fadeIn 0.2s ease, slideDown 0.3s ease;
+                }
+                
+                .color-dropdown-header {
+                    padding: 0.75rem 1rem;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: var(--text-color);
+                    background-color: var(--background-alt-color);
+                    border-bottom: 1px solid var(--border-color);
+                }
+                
+                .color-options {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 0.75rem;
+                    padding: 0.75rem;
+                }
+                
+                .color-option {
+                    width: 100%;
+                    aspect-ratio: 1;
+                    border-radius: 8px;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                }
+                
+                .color-option:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                }
+                
+                .color-option.active {
+                    border: 2px solid white;
+                    box-shadow: 0 0 0 2px var(--text-color);
+                }
+
                 @media (max-width: 768px) {
                     .auth-btn {
                         width: 100%;
@@ -629,6 +808,26 @@ export default function Header() {
                         max-width: 320px;
                         max-height: 80vh;
                         overflow-y: auto;
+                        animation: fadeIn 0.3s ease;
+                    }
+                    
+                    .color-picker-container {
+                        margin: 0.5rem 0;
+                        width: 100%;
+                    }
+                    
+                    .color-picker-button {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                    
+                    .color-dropdown {
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 90%;
+                        max-width: 280px;
                         animation: fadeIn 0.3s ease;
                     }
                 }

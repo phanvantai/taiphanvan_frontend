@@ -1,32 +1,42 @@
-import Link from 'next/link';
-import type { Metadata } from 'next/types';
+'use client';
 
-export const metadata: Metadata = {
-    title: 'Page Not Found | Tai Phan Van',
-    description: 'Sorry, the page you are looking for does not exist.'
-};
+import React, { useEffect } from 'react';
+import Link from 'next/link';
+import '@/styles/not-found.css';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function NotFound() {
+    // Get the current theme and primary color
+    const { theme, colorHex } = useTheme();
+
+    // Set the document title and apply theme
+    useEffect(() => {
+        document.title = 'Page Not Found | Tai Phan Van';
+
+        // Apply theme
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.style.setProperty('--primary-color', colorHex);
+    }, [theme, colorHex]);
+
     return (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-            <h1 className="text-6xl font-bold mb-4">404</h1>
-            <h2 className="text-2xl font-semibold mb-6">Page Not Found</h2>
-            <p className="text-gray-600 mb-8 max-w-md">
-                Sorry, the page you are looking for doesn&apos;t exist or has been moved.
-            </p>
-            <div className="space-x-4">
-                <Link
-                    href="/"
-                    className="bg-black hover:bg-gray-800 text-white font-medium px-6 py-3 rounded-full transition-colors"
-                >
-                    Go Home
-                </Link>
-                <Link
-                    href="/blog"
-                    className="border border-gray-300 hover:border-gray-400 font-medium px-6 py-3 rounded-full transition-colors"
-                >
-                    Read Blog
-                </Link>
+        <div className="not-found-container">
+            <div className="not-found-content">
+                <div className="not-found-icon">
+                    <i className="fas fa-compass"></i>
+                </div>
+                <h1 className="not-found-title">404</h1>
+                <h2 className="not-found-subtitle">Page Not Found</h2>
+                <p className="not-found-message">
+                    Sorry, the page you are looking for doesn&apos;t exist or has been moved.
+                </p>
+                <div className="not-found-actions">
+                    <Link href="/" className="btn btn-primary">
+                        <i className="fas fa-home"></i> Go Home
+                    </Link>
+                    <Link href="/blog" className="btn btn-secondary">
+                        <i className="fas fa-book"></i> Read Blog
+                    </Link>
+                </div>
             </div>
         </div>
     );

@@ -1,0 +1,79 @@
+/* Fix for click events in blog page */
+.blog-container * {
+    pointer-events: auto;
+}
+
+/* Blog post cover image styles */
+.blog-post-cover {
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .blog-post-cover {
+        height: 250px;
+    }
+}
+
+.blog-post-header {
+    margin-top: 2rem;
+}
+
+.create-article-btn {
+    position: relative;
+    z-index: 100;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.create-article-btn:hover {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.filter-btn {
+    position: relative;
+    z-index: 50;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    margin: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.filter-btn:hover {
+    background-color: var(--background-alt-color);
+    transform: translateY(-2px);
+}
+
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.blog-grid {
+    position: relative;
+    z-index: 10;
+}

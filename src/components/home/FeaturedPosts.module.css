@@ -1,0 +1,12 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.viewAll {
+    color: var(--text-muted-color);
+    font-weight: 500;
+    transition: color 0.3s;
+}

@@ -1,0 +1,46 @@
+/* Blog post card specific styles */
+.meta-item {
+    display: inline-flex; /* Changed from flex to inline-flex */
+    align-items: center;
+    margin-right: 1rem;
+    white-space: nowrap; /* Prevent wrapping within meta items */
+}
+
+.meta-icon {
+    margin-right: 0.5rem;
+}
+
+.meta-text {
+    display: inline-block;
+}
+
+/* Ensure proper spacing in the blog post meta section */
+.blog-post-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    /* Prevent items from wrapping to new lines */
+    margin-bottom: 0.25rem;
+    width: 100%;
+    /* Ensure container spans full width */
+    overflow-x: auto;
+    /* Add horizontal scrolling if needed on small screens */
+    -ms-overflow-style: none;
+    /* Hide scrollbar in IE and Edge */
+    scrollbar-width: none;
+    /* Hide scrollbar in Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.blog-post-meta::-webkit-scrollbar {
+    display: none;
+}
+
+/* Ensure blog post title has appropriate spacing */
+.blog-post-title {
+    margin-top: 0;
+    /* Remove top margin to bring title closer to meta info */
+    margin-bottom: 0.5rem;
+    clear: both;
+    /* Ensure title starts below meta info */
+}
