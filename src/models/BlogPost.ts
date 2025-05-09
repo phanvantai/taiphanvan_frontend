@@ -5,14 +5,10 @@
  * It serves as the single source of truth for the blog post data structure.
  */
 
-/**
- * Represents a tag associated with blog posts
- */
-export interface BlogPostTag {
-    id: number;
-    name: string;
-    posts?: Array<{ id: number }> | null;
-}
+import { BlogTag, cleanTagName } from './BlogTag';
+
+// For backward compatibility
+export type BlogPostTag = BlogTag;
 
 /**
  * Represents a user who authors blog posts
@@ -40,8 +36,9 @@ export interface BlogPostMetadata {
     cover: string;
     date?: string; // For compatibility with existing code
     coverImage?: string; // For compatibility with existing code
-    tags: BlogPostTag[];
+    tags: BlogTag[];
     status: 'published' | 'draft';
+    publish_at?: string; // Date when the post should be published if scheduled
 }
 
 /**
@@ -116,9 +113,8 @@ export function formatBlogPost(post: BlogPost): FormattedPost {
         date: formatDate(post.created_at),
         slug: post.slug,
         tags: post.tags.map(tag => {
-            // Clean up tag names (they appear to have JSON formatting in them)
-            const cleanName = tag.name.replace(/[\[\]"]/g, '');
-            return cleanName;
+            // Clean up tag names using the utility function from BlogTag
+            return cleanTagName(tag.name);
         }),
         coverImage: post.cover || post.coverImage || '',
         content: post.content

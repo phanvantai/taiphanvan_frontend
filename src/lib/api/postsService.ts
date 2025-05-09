@@ -7,6 +7,23 @@
 
 import { apiClient } from './apiClient';
 import { BlogPost, PostsResponse } from '@/models/BlogPost';
+import { BlogTagMinimal, getTagNames } from '@/models/BlogTag';
+
+// Define a type for creating posts that allows BlogTagMinimal
+export interface CreatePostData extends Omit<Partial<BlogPost>, 'tags'> {
+    tags?: BlogTagMinimal[];
+    publish_at?: string;
+}
+
+// Define a type for updating posts that allows BlogTagMinimal
+export interface UpdatePostData extends Omit<Partial<BlogPost>, 'tags'> {
+    tags?: BlogTagMinimal[];
+}
+
+// Define a type for updating posts that allows BlogTagMinimal
+export interface UpdatePostData extends Omit<Partial<BlogPost>, 'tags'> {
+    tags?: BlogTagMinimal[];
+}
 
 // Re-export the PostsResponse type as PostsApiResponse for backward compatibility
 export type PostsApiResponse = PostsResponse;
@@ -106,16 +123,80 @@ export class PostsService {
     }
 
     /**
+     * Get a single post by slug
+     * @param slug Post slug
+     * @returns Promise with the post
+     */
+    async getPostBySlug(slug: string): Promise<BlogPost | null> {
+        try {
+            console.log(`Fetching post with slug: ${slug} from API`);
+            const response = await apiClient.get<BlogPost | { post: BlogPost }>(`/posts/slug/${slug}`, {
+                requiresAuth: true
+            });
+
+            console.log('API response received:', response.data);
+
+            // Handle different response formats
+            let post: BlogPost | null = null;
+
+            if (!response.data) {
+                console.error('API response data is empty');
+                return null;
+            }
+
+            // Case 1: Response is directly the post object (has id, title, etc.)
+            if ('id' in response.data && 'title' in response.data) {
+                console.log('Response is directly the post object');
+                post = response.data as BlogPost;
+            }
+            // Case 2: Response has a post property
+            else if ('post' in response.data && response.data.post.id) {
+                console.log('Response has post nested in "post" property');
+                post = response.data.post as BlogPost;
+            }
+            // Case 3: Unknown format
+            else {
+                console.error('Unknown API response format:', response.data);
+                return null;
+            }
+
+            console.log('Processed post data:', post);
+            return post;
+        } catch (error) {
+            console.error('Error in getPostBySlug:', error);
+            return null; // Return null instead of throwing to prevent component crashes
+        }
+    }
+
+    /**
      * Create a new post
      * @param postData Post data
+     * @param publishImmediately Whether to publish immediately (defaults to false, creating a draft)
      * @returns Promise with the created post
      */
-    async createPost(postData: Partial<BlogPost>): Promise<BlogPost> {
-        const response = await apiClient.post<{ post: BlogPost }>('/posts', postData, {
+    async createPost(postData: CreatePostData, publishImmediately: boolean = false): Promise<BlogPost> {
+        // Format the request data according to API expectations
+        const requestData = {
+            title: postData.title,
+            excerpt: postData.excerpt,
+            content: postData.content,
+            cover: postData.cover || '',
+            // Set status based on parameter, defaulting to draft
+            status: publishImmediately ? 'published' : 'draft',
+            // Format tags as expected by the API using the utility function
+            tags: postData.tags ? getTagNames(postData.tags) : []
+        };
+
+        // Only add publish_at if status is published and it's provided
+        if (publishImmediately && postData.publish_at) {
+            Object.assign(requestData, { publish_at: postData.publish_at });
+        }
+
+        const response = await apiClient.post<BlogPost>('/posts', requestData, {
             requiresAuth: true
         });
 
-        return response.data.post;
+        return response.data;
     }
 
     /**
@@ -124,8 +205,24 @@ export class PostsService {
      * @param postData Post data
      * @returns Promise with the updated post
      */
-    async updatePost(id: number, postData: Partial<BlogPost>): Promise<BlogPost> {
-        const response = await apiClient.put<{ post: BlogPost }>(`/posts/${id}`, postData, {
+    async updatePost(id: number, postData: Partial<BlogPost> | UpdatePostData): Promise<BlogPost> {
+        // If postData contains tags as BlogTagMinimal[], format them for the API
+        const formattedData = { ...postData };
+
+        if ('tags' in postData && Array.isArray(postData.tags)) {
+            // Check if the tags are BlogTagMinimal (they won't have a required id)
+            const hasBlogTagMinimal = postData.tags.some(tag => !('id' in tag) || tag.id === undefined);
+
+            if (hasBlogTagMinimal) {
+                // Format tags as expected by the API
+                // Convert tag names to string array and then create a proper request object
+                const tagNames = getTagNames(postData.tags);
+                // Convert back to BlogTagMinimal[] format
+                formattedData.tags = tagNames.map(name => ({ name }));
+            }
+        }
+
+        const response = await apiClient.put<{ post: BlogPost }>(`/posts/${id}`, formattedData, {
             requiresAuth: true
         });
 
@@ -153,6 +250,7 @@ export const postsService = new PostsService();
 export const getUserPosts = (page: number = 1, limit: number = 5, forceRefresh = false) =>
     postsService.getUserPosts(page, limit, forceRefresh);
 export const getPostById = postsService.getPostById.bind(postsService);
+export const getPostBySlug = postsService.getPostBySlug.bind(postsService);
 export const createPost = postsService.createPost.bind(postsService);
 export const updatePost = postsService.updatePost.bind(postsService);
 export const deletePost = postsService.deletePost.bind(postsService);

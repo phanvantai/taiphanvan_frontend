@@ -287,7 +287,6 @@ section {
 }
 
 .share-buttons span {
-  margin-right: 1rem;
   font-weight: 500;
   color: var(--text-color);
 }

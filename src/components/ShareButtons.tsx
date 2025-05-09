@@ -28,7 +28,7 @@ export default function ShareButtons({ title, url, compact = false }: ShareButto
     };
 
     return (
-        <div className={`social-icons ${compact ? 'social-icons-compact' : ''}`} style={{ gap: compact ? '4px' : '8px' }}>
+        <div className={`social-icons ${compact ? 'social-icons-compact' : ''}`} style={{ gap: compact ? '4px' : '8px', padding: compact ? '0.5rem' : '1rem', display: 'flex', alignItems: 'center' }}>
             <button
                 onClick={() => handleShare('twitter')}
                 aria-label="Share on Twitter"
