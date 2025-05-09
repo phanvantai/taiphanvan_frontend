@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import './dashboard.css';
 import { DashboardStat, getDashboardData, DashboardData } from '@/lib/api/dashboardService';
 import { BlogPost } from '@/models/BlogPost';
+import { User } from '@/models/User';
 
 type TabType = 'overview' | 'posts' | 'comments' | 'analytics';
 
@@ -21,9 +22,12 @@ export default function DashboardPage() {
         recentPosts: []
     });
 
-    // Use useCallback to memorize the fetch function
+    // Use useCallback to memorize the fetch function and prevent duplicate calls
     const fetchDashboardData = useCallback(async () => {
         if (!user) return;
+
+        // Prevent fetching if already loading
+        if (loading) return;
 
         setLoading(true);
         setError(null);
@@ -38,13 +42,29 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, loading]);
+
+    // Track if this is the initial render
+    const initialRenderRef = useRef(true);
 
     useEffect(() => {
-        // Only fetch data if user is authenticated
-        if (user) {
-            fetchDashboardData();
+        // Only fetch data if user is authenticated and not on initial render
+        let isMounted = true;
+
+        if (user && isMounted) {
+            if (initialRenderRef.current) {
+                // On initial render, just mark it as done but don't fetch
+                initialRenderRef.current = false;
+                setLoading(false); // Ensure we're not stuck in loading state
+            } else {
+                // Only fetch on subsequent renders or user changes
+                fetchDashboardData();
+            }
         }
+
+        return () => {
+            isMounted = false;
+        };
     }, [user, fetchDashboardData]);
 
     return (
@@ -73,17 +93,6 @@ export default function DashboardPage() {
 }
 
 // Separate components for better organization
-
-interface User {
-    id?: number;
-    username?: string;
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-    profileImage?: string;
-    bio?: string;
-}
 
 type DashboardHeaderProps = {
     user: User | null;

@@ -1,31 +1,18 @@
 import { BlogPost, FormattedPost, PostsResponse, formatBlogPost } from '@/models/BlogPost';
+import { apiClient } from '@/lib/api/apiClient';
 
 /**
  * Fetch posts from the API
  */
 export async function fetchPosts(limit: number = 3, status: string = 'published'): Promise<FormattedPost[]> {
   try {
-    // Use environment variable for API URL instead of hardcoded localhost
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876/api';
-
-    const response = await fetch(
-      `${API_URL}/posts?limit=${limit}&status=${status}`,
-      {
-        headers: {
-          'Accept': 'application/json',
-        },
-        next: { revalidate: 60 } // Revalidate every 60 seconds
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch posts: ${response.status}`);
-    }
-
-    const data: PostsResponse = await response.json();
+    const response = await apiClient.get<PostsResponse>('/posts', {
+      params: { limit, status },
+      next: { revalidate: 60 } // Revalidate every 60 seconds
+    });
 
     // Transform API response to match FormattedPost interface using the formatBlogPost helper
-    return data.posts.map(post => formatBlogPost(post));
+    return response.data.posts.map(post => formatBlogPost(post));
   } catch (error) {
     console.error('Error fetching posts:', error);
     return []; // Return empty array on error
@@ -36,7 +23,6 @@ export async function fetchPosts(limit: number = 3, status: string = 'published'
  * Get all blog posts with summary information
  */
 export async function getAllPosts(): Promise<FormattedPost[]> {
-  // Now fetch from the API instead of using mock data
   return fetchPosts(100); // Get all posts with a high limit
 }
 
@@ -44,8 +30,7 @@ export async function getAllPosts(): Promise<FormattedPost[]> {
  * Get featured posts (most recent posts)
  */
 export async function getFeaturedPosts(count: number = 3): Promise<FormattedPost[]> {
-  const posts = await fetchPosts(count);
-  return posts;
+  return fetchPosts(count);
 }
 
 /**
@@ -53,28 +38,17 @@ export async function getFeaturedPosts(count: number = 3): Promise<FormattedPost
  */
 export async function getPostBySlug(slug: string): Promise<FormattedPost | null> {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876/api';
+    const response = await apiClient.get<BlogPost>(`/posts/slug/${slug}`, {
+      next: { revalidate: 60 }
+    });
 
-    const response = await fetch(
-      `${API_URL}/posts/slug/${slug}`,
-      {
-        headers: {
-          'Accept': 'application/json',
-        },
-        next: { revalidate: 60 }
-      }
-    );
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`Failed to fetch post: ${response.status}`);
+    return formatBlogPost(response.data);
+  } catch (error) {
+    // Check if it's an ApiError with 404 status
+    if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
+      return null;
     }
 
-    const post: BlogPost = await response.json();
-    return formatBlogPost(post);
-  } catch (error) {
     console.error(`Error fetching post by slug ${slug}:`, error);
     return null;
   }

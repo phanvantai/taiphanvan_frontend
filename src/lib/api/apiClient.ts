@@ -127,8 +127,30 @@ export class ApiClient {
 
             const errorMessage = errorData.message || `HTTP error ${response.status}`;
 
+            // Handle specific error cases
             if (response.status === 401) {
                 throw new AuthenticationError(errorMessage, response.status, errorData);
+            }
+
+            // Handle rate limiting (429 Too Many Requests)
+            if (response.status === 429) {
+                console.warn('Rate limit exceeded. Backing off before retrying.');
+
+                // Get retry-after header if available, or default to 2 seconds
+                const retryAfter = response.headers.get('retry-after');
+                const waitTime = retryAfter ? parseInt(retryAfter, 10) * 1000 : 2000;
+
+                // Log the wait time
+                console.log(`Waiting ${waitTime}ms before retrying request`);
+
+                // Return a special error for rate limiting that can be handled by callers
+                const rateLimitError = new ApiError(
+                    'Rate limit exceeded. Please try again later.',
+                    response.status,
+                    { ...errorData, retryAfter: waitTime }
+                );
+                rateLimitError.name = 'RateLimitError';
+                throw rateLimitError;
             }
 
             throw new ApiError(errorMessage, response.status, errorData);

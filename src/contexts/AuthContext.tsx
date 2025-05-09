@@ -1,24 +1,7 @@
 "use client"
 
 import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react'
-
-interface User {
-    id: number
-    username: string
-    email: string
-    firstName?: string
-    lastName?: string
-    role: string
-    profileImage?: string
-    bio?: string
-}
-
-interface AuthTokens {
-    access_token: string
-    refresh_token: string
-    token_type: string
-    expires_in: number
-}
+import { User, AuthTokens, mapApiResponseToUser } from '@/models/User'
 
 interface AuthContextType {
     user: User | null
@@ -29,7 +12,7 @@ interface AuthContextType {
     register: (username: string, email: string, password: string, firstName?: string, lastName?: string) => Promise<void>
     logout: () => Promise<void>
     updateProfile: (data: Partial<User>) => Promise<void>
-    uploadAvatar: (file: File) => Promise<void>
+    uploadAvatar: (file: File) => Promise<Record<string, unknown>>
     refreshAccessToken: () => Promise<string | null>
     authFetch: (url: string, options?: RequestInit) => Promise<Response>
     error: string | null
@@ -155,28 +138,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
 
-            // If the user data is nested in a 'user' or 'data' field, extract it
-            const userObject = userData.user || userData.data || userData
-
             console.log('Raw API response:', userData);
-            console.log('Extracted user object:', userObject);
 
-            if (!userObject || typeof userObject !== 'object') {
-                console.error('Invalid user data format:', userData)
-                throw new Error('Invalid user data format received')
-            }
-
-            // Map API response fields (which might be snake_case) to our User interface fields (camelCase)
-            const mappedUser: User = {
-                id: userObject.id,
-                username: userObject.username,
-                email: userObject.email,
-                firstName: userObject.firstName || userObject.first_name || '',
-                lastName: userObject.lastName || userObject.last_name || '',
-                role: userObject.role,
-                profileImage: userObject.profileImage || userObject.profile_image || '',
-                bio: userObject.bio || ''
-            }
+            // Use the helper function from the User model to map the API response
+            const mappedUser = mapApiResponseToUser(userData);
 
             console.log('Mapped user object with profileImage:', mappedUser);
 
@@ -696,7 +661,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return
         }
 
-        setIsLoading(true)
+        // Don't set global loading state for avatar upload
+        // as it will cause the entire profile page to show a loading spinner
+        // setIsLoading(true) - removed this line
         setError(null)
 
         try {
@@ -730,20 +697,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             // Update the user state with the new avatar URL
-            setUser(prevUser => {
-                if (!prevUser) return null
-                return {
-                    ...prevUser,
-                    profileImage: responseData.profileImage || responseData.profile_image || responseData.avatar || responseData.url || prevUser.profileImage
-                }
-            })
+            console.log('Avatar upload response data:', responseData);
+
+            // Extract the new profile image URL from the response
+            let newProfileImage = '';
+
+            // Check if response has data.profile_image
+            if (responseData.data && responseData.data.profile_image) {
+                newProfileImage = responseData.data.profile_image;
+            }
+            // Check other possible response formats
+            else if (responseData.profileImage) {
+                newProfileImage = responseData.profileImage;
+            }
+            else if (responseData.profile_image) {
+                newProfileImage = responseData.profile_image;
+            }
+            else if (responseData.avatar) {
+                newProfileImage = responseData.avatar;
+            }
+            else if (responseData.url) {
+                newProfileImage = responseData.url;
+            }
+            console.log('New profile image from response:', newProfileImage);
+
+            if (newProfileImage) {
+                // Add a timestamp to the URL to prevent caching issues
+                const baseUrl = newProfileImage.includes('?')
+                    ? newProfileImage.split('?')[0]
+                    : newProfileImage;
+
+                const timestamp = new Date().getTime();
+                const timestampedUrl = `${baseUrl}?t=${timestamp}`;
+
+                console.log('Setting user profile image to:', timestampedUrl);
+
+                setUser(prevUser => {
+                    if (!prevUser) return null;
+                    return {
+                        ...prevUser,
+                        profileImage: timestampedUrl
+                    };
+                });
+            } else {
+                console.log('No new profile image URL found in response, keeping existing one');
+                setUser(prevUser => {
+                    if (!prevUser) return null;
+                    return {
+                        ...prevUser,
+                        profileImage: prevUser.profileImage
+                    };
+                });
+            }
 
             return responseData
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'An error occurred while uploading avatar')
             throw err
         } finally {
-            setIsLoading(false)
+            // Don't reset global loading state since we didn't set it
+            // setIsLoading(false) - removed this line
         }
     }
 

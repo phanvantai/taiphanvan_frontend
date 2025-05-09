@@ -463,6 +463,39 @@ section {
   }
 }
 
+/* Animation for automatic message dismissal */
+@keyframes fadeInAndOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes countdown {
+  0% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 50.26;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 992px) {
   .blog-grid {

@@ -11,7 +11,8 @@ const CONFIGURED_DOMAINS = [
     'picsum.photos',
     'via.placeholder.com',
     'cdn.pixabay.com',
-    'images.pexels.com'
+    'images.pexels.com',
+    'localhost', // Add localhost for development
 ];
 
 interface SmartImageProps {
@@ -37,39 +38,29 @@ export default function SmartImage({
     priority = false,
     onError,
 }: SmartImageProps) {
-    const [imgError, setImgError] = useState(false);
+    const [, setImgError] = useState(false);
 
     // Function to check if the image is from a configured domain
     const isConfiguredDomain = () => {
         try {
+            // Handle relative URLs (they're always from our domain)
+            if (src.startsWith('/')) {
+                return true;
+            }
+
             const url = new URL(src);
             return CONFIGURED_DOMAINS.includes(url.hostname);
         } catch {
+            // If URL parsing fails, assume it's not a configured domain
+            console.warn(`Failed to parse image URL: ${src}`);
             return false;
         }
     };
 
-    // If the image URL is from a configured domain and there's no error, use Next.js Image
-    if (src && isConfiguredDomain() && !imgError) {
-        return (
-            <Image
-                src={src}
-                alt={alt}
-                width={fill ? undefined : width || 100}
-                height={fill ? undefined : height || 100}
-                fill={fill}
-                className={className}
-                style={style}
-                priority={priority}
-                onError={() => {
-                    setImgError(true);
-                    onError?.();
-                }}
-            />
-        );
-    }
+    // Log the image source for debugging
+    console.log(`SmartImage rendering with src: ${src}, configured: ${isConfiguredDomain()}`);
 
-    // Otherwise, fall back to Next.js Image with unoptimized prop
+    // Always use unoptimized Image for now to troubleshoot the issue
     return (
         <Image
             src={src}
@@ -80,8 +71,10 @@ export default function SmartImage({
             className={className}
             style={style}
             priority={priority}
-            unoptimized={true} // Skip image optimization for non-configured domains
-            onError={() => {
+            unoptimized={true} // Skip image optimization for all images to troubleshoot
+            onError={(e) => {
+                console.error(`Image error for src: ${src}`, e);
+                setImgError(true);
                 onError?.();
             }}
         />
