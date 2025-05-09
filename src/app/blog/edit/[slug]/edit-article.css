@@ -1,0 +1,83 @@
+/* Edit Article Page Styles */
+/* This file imports the styles from the create page for consistency */
+
+@import '../../create/create-article.css';
+
+/* Edit-specific styles */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(0, 112, 243, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--primary-color, #0070f3);
+    animation: spin 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    color: var(--text-muted-color, #666);
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+.loading-subtext {
+    color: var(--text-muted-color, #888);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-align: center;
+    max-width: 80%;
+}
+
+.loading-progress {
+    width: 80%;
+    max-width: 400px;
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--primary-color, #0070f3);
+    width: 30%;
+    border-radius: 3px;
+    animation: progress-animation 4s infinite ease-in-out;
+}
+
+@keyframes progress-animation {
+    0% {
+        left: -30%;
+        width: 30%;
+    }
+
+    50% {
+        width: 40%;
+    }
+
+    100% {
+        left: 100%;
+        width: 30%;
+    }
+}
