@@ -7,6 +7,13 @@
 
 import { apiClient } from './apiClient';
 import { BlogPost, PostsResponse } from '@/models/BlogPost';
+import { BlogTagMinimal, getTagNames } from '@/models/BlogTag';
+
+// Define a type for creating posts that allows BlogTagMinimal
+export interface CreatePostData extends Omit<Partial<BlogPost>, 'tags'> {
+    tags?: BlogTagMinimal[];
+    publish_at?: string;
+}
 
 // Re-export the PostsResponse type as PostsApiResponse for backward compatibility
 export type PostsApiResponse = PostsResponse;
@@ -111,7 +118,7 @@ export class PostsService {
      * @param publishImmediately Whether to publish immediately (defaults to false, creating a draft)
      * @returns Promise with the created post
      */
-    async createPost(postData: Partial<BlogPost>, publishImmediately: boolean = false): Promise<BlogPost> {
+    async createPost(postData: CreatePostData, publishImmediately: boolean = false): Promise<BlogPost> {
         // Format the request data according to API expectations
         const requestData = {
             title: postData.title,
@@ -120,8 +127,8 @@ export class PostsService {
             cover: postData.cover || '',
             // Set status based on parameter, defaulting to draft
             status: publishImmediately ? 'published' : 'draft',
-            // Format tags as expected by the API
-            tags: postData.tags?.map(tag => tag.name) || []
+            // Format tags as expected by the API using the utility function
+            tags: postData.tags ? getTagNames(postData.tags) : []
         };
 
         // Only add publish_at if status is published and it's provided

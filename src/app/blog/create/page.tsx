@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { postsService } from '@/lib/api/postsService';
+import { postsService, CreatePostData } from '@/lib/api/postsService';
 import { apiClient, ApiError, AuthenticationError } from '@/lib/api/apiClient';
-import { BlogPost, BlogPostTag } from '@/models/BlogPost';
+import { BlogTag, BlogTagMinimal, parseTagsString, cleanTagName } from '@/models/BlogTag';
 import { markdownToHtml } from '@/lib/markdown';
 import './create-article.css';
 
@@ -32,11 +32,9 @@ interface ArticleFormData {
     coverImage: string;
 }
 
-interface Tag {
-    id: number;
-    name: string;
-    post_count: number;
-}
+// Use the BlogTag interface from the model
+// This is kept for backward compatibility
+type Tag = BlogTag;
 
 /**
  * Create Article Page Component
@@ -78,11 +76,11 @@ export default function CreateArticlePage() {
     const fetchTags = async () => {
         setIsLoadingTags(true);
         try {
-            const response = await apiClient.get<Tag[]>('/tags');
-            // Clean tag names (remove quotes and brackets from API response)
-            const cleanedTags = response.data.map((tag: Tag) => ({
+            const response = await apiClient.get<BlogTag[]>('/tags');
+            // Clean tag names using the utility function
+            const cleanedTags = response.data.map((tag: BlogTag) => ({
                 ...tag,
-                name: tag.name.replace(/[\[\]"]/g, '').trim()
+                name: cleanTagName(tag.name)
             }));
             setAvailableTags(cleanedTags);
         } catch (error) {
@@ -233,13 +231,10 @@ export default function CreateArticlePage() {
     };
 
     /**
-     * Convert tags string to BlogPostTag array
+     * Convert tags string to BlogTagMinimal array
      */
-    const parseTags = (tagsString: string): BlogPostTag[] => {
-        return tagsString.split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag.length > 0)
-            .map((name, id) => ({ id, name }));
+    const parseTags = (tagsString: string): BlogTagMinimal[] => {
+        return parseTagsString(tagsString);
     };
 
     /**
@@ -260,13 +255,13 @@ export default function CreateArticlePage() {
 
         try {
             // Prepare API data format
-            const postData: Partial<BlogPost> = {
+            const postData: CreatePostData = {
                 title: formData.title,
                 excerpt: formData.excerpt,
                 content: formData.content,
                 tags: parseTags(formData.tags),
                 cover: formData.coverImage,
-                status: publishImmediately ? 'published' : 'draft'
+                status: publishImmediately ? 'published' as const : 'draft' as const
             };
 
             // If publishing immediately, add the current date
