@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { updatePost, getPostBySlug } from '@/lib/api/postsService';
@@ -37,12 +37,21 @@ interface ArticleFormData {
 type Tag = BlogTag;
 
 /**
- * Edit Article Page Component
- * 
- * This component provides a form for editor users to edit existing blog posts.
- * It includes form validation, error handling, and submission to the API.
+ * Loading component to display while the page is loading
  */
-export default function EditArticlePage() {
+function LoadingComponent() {
+    return (
+        <div className="loading-container">
+            <div className="loading-spinner" aria-label="Loading"></div>
+            <p className="loading-text">Loading article editor...</p>
+        </div>
+    );
+}
+
+/**
+ * The main content component that uses params
+ */
+function EditArticleContent() {
     const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const router = useRouter();
     const params = useParams();
@@ -399,28 +408,10 @@ export default function EditArticlePage() {
     };
 
     /**
-     * Toggle publish status
-     */
-    const handlePublishToggle = () => {
-        setPublishStatus(prev => prev === 'published' ? 'draft' : 'published');
-    };
-
-    /**
      * Handle form submission
      */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!originalPost) {
-            setSubmitError('Post data could not be loaded.');
-            return;
-        }
-
-        // Safety check for post ID
-        if (!originalPost.id) {
-            setSubmitError('Invalid post data: missing ID.');
-            return;
-        }
 
         // Validate form
         const newErrors = validateForm();
@@ -433,6 +424,10 @@ export default function EditArticlePage() {
         setSubmitError(null);
 
         try {
+            if (!postSlug) {
+                throw new Error('Post slug is missing');
+            }
+
             // Prepare API data format
             const postData = {
                 title: formData.title,
@@ -443,21 +438,27 @@ export default function EditArticlePage() {
                 status: publishStatus
             };
 
-            // Submit to API
+            // Submit to API using the post ID from originalPost
+            if (!originalPost || !originalPost.id) {
+                throw new Error('Post ID is missing');
+            }
+
             const response = await updatePost(originalPost.id, postData);
 
             // Handle success
             setSubmitSuccess(true);
 
-            // Redirect immediately
-            router.push(`/blog/${response.slug}`);
+            // Redirect after a brief delay to show success message
+            setTimeout(() => {
+                router.push(`/blog/${response.slug}`);
+            }, 1500);
 
         } catch (error: unknown) {
             console.error('Error updating post:', error);
 
             // Handle specific error types
             if (error instanceof AuthenticationError) {
-                setSubmitError('You must be logged in to edit posts. Please log in and try again.');
+                setSubmitError('You must be logged in to update posts. Please log in and try again.');
             } else if (error instanceof ApiError) {
                 setSubmitError(`Error: ${error.message}`);
             } else {
@@ -475,43 +476,42 @@ export default function EditArticlePage() {
         router.back();
     };
 
-    // Show loading spinner
-    if (isLoading) {
+    /**
+     * Toggle publish status
+     */
+    const handleStatusToggle = () => {
+        setPublishStatus(prev => prev === 'published' ? 'draft' : 'published');
+    };
+
+    // Show loading spinner while checking auth or loading post
+    if (isLoading || isAuthLoading) {
         return (
             <div className="loading-container">
                 <div className="loading-spinner" aria-label="Loading"></div>
-                <p className="loading-text">Loading...</p>
-                <p className="loading-subtext">Please wait</p>
+                <p className="loading-text">Loading article editor...</p>
             </div>
         );
     }
 
-    // If not editor, this will redirect, but we'll return null while that happens
-    if (!isAuthenticated || user?.role !== 'editor') {
-        return null;
-    }
-
-    // Show error if post failed to load
+    // Show error message if there's an error
     if (loadError) {
         return (
-            <div className="create-article-container">
-                <div className="article-header">
-                    <h1 className="section-title">
-                        Edit Article
-                        <span className="title-underline"></span>
-                    </h1>
-                </div>
-                <div className="article-form-card">
-                    <div className="error-message" role="alert">
-                        {loadError}
-                    </div>
-                </div>
+            <div className="error-container">
+                <div className="error-icon" aria-hidden="true">⚠️</div>
+                <h2>Error Loading Article</h2>
+                <p className="error-message">{loadError}</p>
+                <button
+                    className="btn-secondary"
+                    onClick={() => router.push('/blog')}
+                >
+                    Return to Blog
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="create-article-container">
+        <div className="edit-article-container">
             <div className="article-header">
                 <h1 className="section-title">
                     Edit Article
@@ -526,7 +526,7 @@ export default function EditArticlePage() {
                         <svg aria-hidden="true" className="success-icon" viewBox="0 0 24 24">
                             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
                         </svg>
-                        <p>Article updated successfully! Redirecting to your post...</p>
+                        <p>Article updated successfully! Redirecting to your updated post...</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} noValidate>
@@ -578,49 +578,28 @@ export default function EditArticlePage() {
                         </div>
 
                         <div className="form-group">
-                            <div className="content-header">
-                                <label htmlFor="content">
-                                    Content (Markdown supported) <span className="required-mark">*</span>
-                                </label>
-                                <button
-                                    type="button"
-                                    className="preview-toggle-btn"
-                                    onClick={togglePreview}
-                                    data-testid="preview-toggle-button"
-                                >
-                                    {showPreview ? 'Edit Mode' : 'Preview Mode'}
-                                </button>
-                            </div>
-
-                            {showPreview ? (
-                                <div
-                                    className="markdown-preview"
-                                    dangerouslySetInnerHTML={{ __html: previewHtml }}
-                                    data-testid="markdown-preview"
-                                    aria-label="Markdown preview"
-                                />
-                            ) : (
-                                <textarea
-                                    id="content"
-                                    name="content"
-                                    value={formData.content}
-                                    onChange={handleChange}
-                                    required
-                                    aria-required="true"
-                                    aria-invalid={!!errors.content}
-                                    aria-describedby={errors.content ? "content-error" : undefined}
-                                    placeholder="Write your article content here (Markdown supported)"
-                                    className={`code-editor ${errors.content ? "input-error" : ""}`}
-                                    data-testid="article-content-input"
-                                    rows={25}
-                                />
-                            )}
-                            {errors.content && <p id="content-error" className="error-text">{errors.content}</p>}
+                            <label htmlFor="coverImage">
+                                Cover Image URL
+                            </label>
+                            <input
+                                id="coverImage"
+                                name="coverImage"
+                                type="url"
+                                value={formData.coverImage}
+                                onChange={handleChange}
+                                aria-invalid={!!errors.coverImage}
+                                aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
+                                placeholder="https://example.com/image.jpg"
+                                className={errors.coverImage ? "input-error" : ""}
+                                data-testid="article-cover-input"
+                            />
+                            {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
+                            <p className="input-help">Enter a URL for the article cover image</p>
                         </div>
 
                         <div className="form-group">
                             <label htmlFor="tags">
-                                Tags (comma separated) <span className="required-mark">*</span>
+                                Tags <span className="required-mark">*</span>
                             </label>
                             <input
                                 id="tags"
@@ -632,69 +611,96 @@ export default function EditArticlePage() {
                                 aria-required="true"
                                 aria-invalid={!!errors.tags}
                                 aria-describedby={errors.tags ? "tags-error" : undefined}
-                                placeholder="e.g. Development, Next.js, React"
+                                placeholder="Enter tags separated by commas"
                                 className={errors.tags ? "input-error" : ""}
                                 data-testid="article-tags-input"
                             />
                             {errors.tags && <p id="tags-error" className="error-text">{errors.tags}</p>}
 
-                            <div className="available-tags">
-                                <div className="tags-container" data-testid="tags-selector">
-                                    {availableTags.length > 0 ? (
-                                        availableTags.map(tag => (
-                                            <button
-                                                key={tag.id}
-                                                type="button"
-                                                className="tag-pill"
-                                                onClick={() => handleTagSelect(tag.name)}
-                                                title={`${tag.post_count} posts with this tag`}
-                                            >
-                                                {tag.name} ({tag.post_count})
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <span className="no-tags">No tags available</span>
-                                    )}
+                            <div className="tags-selector">
+                                <p className="tags-selector-label">Available tags (click to add):</p>
+                                <div className="tags-list">
+                                    {availableTags.map(tag => (
+                                        <button
+                                            key={tag.id}
+                                            type="button"
+                                            className="tag-button"
+                                            onClick={() => handleTagSelect(tag.name)}
+                                            data-testid={`tag-${tag.name}`}
+                                        >
+                                            {tag.name}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="coverImage">Cover Image URL</label>
-                            <input
-                                id="coverImage"
-                                name="coverImage"
-                                type="text"
-                                value={formData.coverImage}
-                                onChange={handleChange}
-                                aria-invalid={!!errors.coverImage}
-                                aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
-                                placeholder="https://example.com/image.jpg"
-                                className={errors.coverImage ? "input-error" : ""}
-                                data-testid="article-cover-image-input"
-                            />
-                            {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
+                        <div className="form-group content-group">
+                            <div className="content-header">
+                                <label htmlFor="content">
+                                    Article Content <span className="required-mark">*</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    className={`preview-toggle ${showPreview ? 'active' : ''}`}
+                                    onClick={togglePreview}
+                                    data-testid="preview-toggle"
+                                >
+                                    {showPreview ? 'Edit' : 'Preview'}
+                                </button>
+                            </div>
+
+                            {showPreview ? (
+                                <div
+                                    className="markdown-preview"
+                                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                                    data-testid="markdown-preview"
+                                />
+                            ) : (
+                                <>
+                                    <textarea
+                                        id="content"
+                                        name="content"
+                                        value={formData.content}
+                                        onChange={handleChange}
+                                        required
+                                        aria-required="true"
+                                        aria-invalid={!!errors.content}
+                                        aria-describedby={errors.content ? "content-error" : undefined}
+                                        placeholder="Write your article content in Markdown format"
+                                        className={`content-editor ${errors.content ? "input-error" : ""}`}
+                                        data-testid="article-content-input"
+                                    />
+                                    {errors.content && <p id="content-error" className="error-text">{errors.content}</p>}
+                                    <p className="input-help">Markdown formatting is supported</p>
+                                </>
+                            )}
                         </div>
 
-                        <div className="publish-options">
-                            <label className="publish-toggle">
+                        <div className="form-group publish-options">
+                            <label className="checkbox-label">
                                 <input
                                     type="checkbox"
                                     checked={publishStatus === 'published'}
-                                    onChange={handlePublishToggle}
-                                    data-testid="publish-toggle"
+                                    onChange={handleStatusToggle}
+                                    data-testid="publish-checkbox"
                                 />
-                                <span className="publish-toggle-text">
+                                <span className="checkbox-text">
                                     {publishStatus === 'published' ? 'Published' : 'Draft'}
                                 </span>
                             </label>
+                            <p className="status-help">
+                                {publishStatus === 'published'
+                                    ? 'This article is visible to all users'
+                                    : 'This article is only visible to editors'}
+                            </p>
                         </div>
 
                         <div className="form-actions">
                             <button
                                 type="button"
-                                onClick={handleCancel}
                                 className="btn-secondary"
+                                onClick={handleCancel}
                                 disabled={isSubmitting}
                                 data-testid="article-cancel-button"
                             >
@@ -718,5 +724,19 @@ export default function EditArticlePage() {
                 )}
             </div>
         </div>
+    );
+}
+
+/**
+ * Edit Article Page Component
+ * 
+ * This component provides a form for editor users to edit existing blog posts.
+ * It includes form validation, error handling, and submission to the API.
+ */
+export default function EditArticlePage() {
+    return (
+        <Suspense fallback={<LoadingComponent />}>
+            <EditArticleContent />
+        </Suspense>
     );
 }
