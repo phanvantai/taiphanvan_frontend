@@ -197,14 +197,14 @@ export default function Header() {
                                                 Dashboard
                                             </Link>
 
-                                            <Link
+                                            {/* <Link
                                                 href="/settings"
                                                 className="menu-button"
                                                 onClick={() => setUserMenuOpen(false)}
                                             >
                                                 <i className="fas fa-cog menu-icon"></i>
                                                 Settings
-                                            </Link>
+                                            </Link> */}
                                         </div>
 
                                         <button

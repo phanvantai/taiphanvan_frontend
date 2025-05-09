@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import './dashboard.css';
 
 export default function DashboardLayout({
     children,
