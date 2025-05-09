@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { Metadata } from 'next/types';
 import BlogPostCard from '@/components/BlogPostCard';
 import ShareButtons from '@/components/ShareButtons';
+import SmartImage from '@/components/SmartImage';
 import { getPostBySlug, getRelatedPosts } from '@/lib/blog';
 import { markdownToHtml } from '@/lib/markdown';
+import '@/components/blog-post-card.css'; // Import the CSS for meta styling
 
 // This generates metadata for each blog post dynamically
 export async function generateMetadata({
@@ -31,7 +33,21 @@ export async function generateMetadata({
             type: 'article',
             publishedTime: post.date,
             authors: ['Tai Phan Van'],
-            tags: post.tags
+            tags: post.tags,
+            images: post.coverImage ? [
+                {
+                    url: post.coverImage,
+                    width: 1200,
+                    height: 630,
+                    alt: `Cover image for ${post.title}`
+                }
+            ] : []
+        },
+        twitter: {
+            card: post.coverImage ? 'summary_large_image' : 'summary',
+            title: post.title,
+            description: post.excerpt,
+            images: post.coverImage ? [post.coverImage] : []
         }
     };
 }
@@ -66,25 +82,47 @@ export default async function BlogPostPage(props: {
                 ← Back to all posts
             </Link>
 
+            {/* Cover image */}
+            {post.coverImage && (
+                <div className="blog-post-cover" style={{
+                    marginBottom: '2rem',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    width: '100%',
+                    height: '400px'
+                }}>
+                    <SmartImage
+                        src={post.coverImage}
+                        alt={`Cover image for ${post.title}`}
+                        fill={true}
+                        priority={true}
+                        style={{ objectFit: 'cover' }}
+                    />
+                </div>
+            )}
+
             <header className="blog-post-header">
                 <div className="blog-post-meta">
-                    <span>
-                        <i className="far fa-calendar"></i>
-                        {post.date}
+                    <span className="meta-item">
+                        <i className="far fa-calendar meta-icon"></i>
+                        <span className="meta-text">{post.date}</span>
                     </span>
-                    <span>
-                        <i className="fas fa-tag"></i>
-                        {post.tags.map((tag, index) => (
-                            <span key={tag}>
-                                <Link
-                                    href={`/blog?tag=${encodeURIComponent(tag)}`}
-                                    style={{ color: 'var(--text-muted-color)' }}
-                                >
-                                    {tag}
-                                </Link>
-                                {index < post.tags.length - 1 ? ', ' : ''}
-                            </span>
-                        ))}
+                    <span className="meta-item">
+                        <i className="fas fa-tag meta-icon"></i>
+                        <span className="meta-text">
+                            {post.tags.map((tag, index) => (
+                                <span key={tag} style={{ marginRight: '4px' }}>
+                                    <Link
+                                        href={`/blog?tag=${encodeURIComponent(tag)}`}
+                                        style={{ color: 'var(--text-muted-color)' }}
+                                    >
+                                        {tag}
+                                    </Link>
+                                    {index < post.tags.length - 1 ? ', ' : ''}
+                                </span>
+                            ))}
+                        </span>
                     </span>
                 </div>
                 <h1 className="blog-post-title" style={{
