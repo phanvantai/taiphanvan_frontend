@@ -1,55 +1,4 @@
-// API response interfaces
-export interface Post {
-  id: number;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  cover: string;
-  status: string;
-  user_id: number;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    bio: string;
-    role: string;
-    profile_image: string;
-    created_at: string;
-    updated_at: string;
-  };
-  tags: {
-    id: number;
-    name: string;
-    posts: null;
-  }[];
-  created_at: string;
-  updated_at: string;
-}
-
-// Formatted post type for display in components
-export interface FormattedPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  date: string;
-  slug: string;
-  tags: string[]; // Changed from categories to tags
-  coverImage: string;
-  content: string;
-}
-
-export interface PostsResponse {
-  meta: {
-    lastPage: number;
-    limit: number;
-    page: number;
-    total: number;
-  };
-  posts: Post[];
-}
+import { BlogPost, FormattedPost, PostsResponse, formatBlogPost } from '@/models/BlogPost';
 
 /**
  * Fetch posts from the API
@@ -75,21 +24,8 @@ export async function fetchPosts(limit: number = 3, status: string = 'published'
 
     const data: PostsResponse = await response.json();
 
-    // Transform API response to match FormattedPost interface
-    return data.posts.map(post => ({
-      id: post.id,
-      title: post.title,
-      excerpt: post.excerpt || post.content.substring(0, 150) + '...', // Use excerpt or truncated content
-      date: formatDate(post.created_at),
-      slug: post.slug,
-      tags: post.tags.map(tag => {
-        // Clean up tag names (they appear to have JSON formatting in them)
-        const cleanName = tag.name.replace(/[\[\]"]/g, '');
-        return cleanName;
-      }),
-      coverImage: post.cover,
-      content: post.content // Include content field
-    }));
+    // Transform API response to match FormattedPost interface using the formatBlogPost helper
+    return data.posts.map(post => formatBlogPost(post));
   } catch (error) {
     console.error('Error fetching posts:', error);
     return []; // Return empty array on error
@@ -136,22 +72,8 @@ export async function getPostBySlug(slug: string): Promise<FormattedPost | null>
       throw new Error(`Failed to fetch post: ${response.status}`);
     }
 
-    const post: Post = await response.json();
-
-    return {
-      id: post.id,
-      title: post.title,
-      excerpt: post.excerpt || post.content.substring(0, 150) + '...', // Use excerpt or truncated content
-      date: formatDate(post.created_at),
-      slug: post.slug,
-      tags: post.tags.map(tag => {
-        // Clean up tag names (they appear to have JSON formatting in them)
-        const cleanName = tag.name.replace(/[\[\]"]/g, '');
-        return cleanName;
-      }),
-      coverImage: post.cover,
-      content: post.content
-    };
+    const post: BlogPost = await response.json();
+    return formatBlogPost(post);
   } catch (error) {
     console.error(`Error fetching post by slug ${slug}:`, error);
     return null;
@@ -212,14 +134,4 @@ export async function getAllTags(): Promise<string[]> {
   }
 }
 
-/**
- * Format a date string nicely
- */
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date);
-}
+// formatDate function is now imported from @/models/BlogPost

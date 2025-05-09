@@ -1,0 +1,6 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    /* Equivalent to space-y-16 in Tailwind */
+}

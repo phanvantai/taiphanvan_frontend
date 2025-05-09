@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import './blog-post-card.css';
-import { FormattedPost } from '@/lib/blog';
+import { FormattedPost } from '@/models/BlogPost';
 
 interface BlogPostCardProps {
     post: FormattedPost;

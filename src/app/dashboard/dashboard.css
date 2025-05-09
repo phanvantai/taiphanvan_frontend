@@ -1,3 +1,26 @@
+/* Error state */
+.error-state {
+    background-color: var(--background-alt-color);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.error-state p {
+    color: var(--danger-color, #e53e3e);
+    font-weight: 500;
+}
+
+.error-state button {
+    padding: 0.5rem 1.5rem;
+    max-width: 200px;
+}
+
 /* Dashboard styles */
 .dashboard {
     display: flex;
