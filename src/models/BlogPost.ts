@@ -42,6 +42,7 @@ export interface BlogPostMetadata {
     coverImage?: string; // For compatibility with existing code
     tags: BlogPostTag[];
     status: 'published' | 'draft';
+    publish_at?: string; // Date when the post should be published if scheduled
 }
 
 /**

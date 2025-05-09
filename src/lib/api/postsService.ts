@@ -108,14 +108,32 @@ export class PostsService {
     /**
      * Create a new post
      * @param postData Post data
+     * @param publishImmediately Whether to publish immediately (defaults to false, creating a draft)
      * @returns Promise with the created post
      */
-    async createPost(postData: Partial<BlogPost>): Promise<BlogPost> {
-        const response = await apiClient.post<{ post: BlogPost }>('/posts', postData, {
+    async createPost(postData: Partial<BlogPost>, publishImmediately: boolean = false): Promise<BlogPost> {
+        // Format the request data according to API expectations
+        const requestData = {
+            title: postData.title,
+            excerpt: postData.excerpt,
+            content: postData.content,
+            cover: postData.cover || '',
+            // Set status based on parameter, defaulting to draft
+            status: publishImmediately ? 'published' : 'draft',
+            // Format tags as expected by the API
+            tags: postData.tags?.map(tag => tag.name) || []
+        };
+
+        // Only add publish_at if status is published and it's provided
+        if (publishImmediately && postData.publish_at) {
+            Object.assign(requestData, { publish_at: postData.publish_at });
+        }
+
+        const response = await apiClient.post<BlogPost>('/posts', requestData, {
             requiresAuth: true
         });
 
-        return response.data.post;
+        return response.data;
     }
 
     /**
