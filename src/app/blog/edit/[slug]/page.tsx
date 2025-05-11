@@ -6,9 +6,11 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { updatePost, getPostBySlug } from '@/lib/api/postsService';
 import { apiClient, ApiError, AuthenticationError } from '@/lib/api/apiClient';
+import { fileService } from '@/lib/api/fileService';
 import { BlogTag, BlogTagMinimal, parseTagsString, cleanTagName } from '@/models/BlogTag';
 import { markdownToHtml } from '@/lib/markdown';
 import { BlogPost } from '@/models/BlogPost';
+import FileUploader from '@/components/FileUploader';
 import './edit-article.css';
 
 /**
@@ -87,9 +89,6 @@ function EditArticleContent() {
     const [publishStatus, setPublishStatus] = useState<'published' | 'draft'>('draft');
 
     // File upload state
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    //const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
 
     // Form state management
@@ -263,40 +262,14 @@ function EditArticleContent() {
     };
 
     /**
-     * Handle file selection for cover image
+     * Handle file upload completion
      */
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files && e.target.files[0];
-
-        // Reset previous errors
-        setUploadError(null);
-
-        if (!file) {
-            setSelectedFile(null);
-            setImagePreview(null);
-            return;
-        }
-
-        // Validate file type
-        if (!file.type.match('image/(jpeg|jpg|png|gif|webp)')) {
-            setUploadError('Please select a valid image file (JPEG, PNG, GIF, or WEBP)');
-            return;
-        }
-
-        // Validate file size (5MB max)
-        if (file.size > 5 * 1024 * 1024) {
-            setUploadError('File size must be less than 5MB');
-            return;
-        }
-
-        setSelectedFile(file);
-
-        // Create a preview URL
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+    const handleFileUploaded = (fileUrl: string) => {
+        // Update the form data with the new file URL
+        setFormData(prev => ({
+            ...prev,
+            coverImage: fileUrl
+        }));
 
         // Clear any coverImage-related errors
         if (errors.coverImage) {
@@ -306,41 +279,9 @@ function EditArticleContent() {
                 return updated;
             });
         }
-    };
 
-    /**
-     * Upload cover image file
-     */
-    const uploadCoverImage = async (file: File): Promise<string> => {
-        //setIsUploading(true);
-
-        try {
-            // Create a FormData object to send the file
-            const formData = new FormData();
-            formData.append('image', file);
-
-            // Create custom fetch options for file upload
-            const fetchOptions: RequestInit = {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                }
-            };
-
-            // Make the request
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876/api'}/uploads/images`, fetchOptions);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Failed to upload image: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.url; // Assuming the API returns an object with a url property
-        } finally {
-            //setIsUploading(false);
-        }
+        // Clear any upload errors
+        setUploadError(null);
     };
 
     /**
@@ -519,18 +460,8 @@ function EditArticleContent() {
                 throw new Error('Post slug is missing');
             }
 
-            // Handle file upload if a file was selected
-            let coverImageUrl = formData.coverImage;
-
-            if (selectedFile) {
-                try {
-                    coverImageUrl = await uploadCoverImage(selectedFile);
-                } catch (error) {
-                    setSubmitError(`Error uploading image: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                    setIsSubmitting(false);
-                    return;
-                }
-            }
+            // Use the cover image URL from the form data
+            // (It's already updated by the FileUploader component if a new file was uploaded)
 
             // Prepare API data format
             const postData = {
@@ -538,7 +469,7 @@ function EditArticleContent() {
                 excerpt: formData.excerpt,
                 content: formData.content,
                 tags: parseTags(formData.tags),
-                cover: coverImageUrl,
+                cover: formData.coverImage,
                 status: publishStatus
             };
 
@@ -682,70 +613,73 @@ function EditArticleContent() {
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="coverImage">
-                                Cover Image
-                            </label>
-
-                            <div className="cover-image-options">
-                                <div className="url-input-container">
-                                    <p className="input-label">Option 1: Enter image URL</p>
+                            <label htmlFor="coverImage">Cover Image</label>
+                            <div className="cover-image-container">
+                                <div className="cover-image-input">
                                     <input
                                         id="coverImage"
                                         name="coverImage"
-                                        type="url"
+                                        type="text"
                                         value={formData.coverImage}
                                         onChange={handleChange}
                                         aria-invalid={!!errors.coverImage}
                                         aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
                                         placeholder="https://example.com/image.jpg"
                                         className={errors.coverImage ? "input-error" : ""}
-                                        data-testid="article-cover-input"
+                                        data-testid="article-cover-image-input"
                                     />
+                                    {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
                                 </div>
 
-                                <div className="separator">
-                                    <span>OR</span>
-                                </div>
-
-                                <div className="file-upload-container">
-                                    <p className="input-label">Option 2: Upload an image file</p>
-                                    <input
-                                        type="file"
-                                        id="coverImageFile"
-                                        onChange={handleFileSelect}
-                                        accept="image/jpeg,image/png,image/gif,image/webp"
-                                        className="file-input"
-                                        data-testid="article-cover-file-input"
+                                <div className="cover-image-upload">
+                                    <h4>Or upload an image</h4>
+                                    <FileUploader
+                                        acceptedFileTypes="image/jpeg,image/jpg,image/png,image/webp"
+                                        maxSizeMB={5}
+                                        onFileUploaded={handleFileUploaded}
                                     />
-                                    <label htmlFor="coverImageFile" className="file-input-label">
-                                        Choose File
-                                    </label>
-                                    {selectedFile && (
-                                        <span className="file-name">
-                                            Selected: {selectedFile.name}
-                                        </span>
-                                    )}
                                 </div>
                             </div>
 
-                            {imagePreview && (
-                                <div className="image-preview">
-                                    <p className="preview-label">Image Preview:</p>
-                                    <Image
-                                        src={imagePreview}
-                                        alt="Cover preview"
-                                        className="cover-preview-image"
-                                        width={400}
-                                        height={200}
-                                        style={{ objectFit: 'contain' }}
-                                    />
+                            {formData.coverImage && (
+                                <div className="current-image">
+                                    <h4>Current Cover Image</h4>
+                                    <div className="image-preview">
+                                        <Image
+                                            src={formData.coverImage}
+                                            alt="Cover preview"
+                                            className="cover-preview-image"
+                                            width={400}
+                                            height={200}
+                                            style={{ objectFit: 'contain' }}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="delete-image-btn"
+                                        onClick={async () => {
+                                            try {
+                                                // Only attempt to delete if it's a URL from our API
+                                                if (formData.coverImage.includes(process.env.NEXT_PUBLIC_API_URL || 'localhost:9876')) {
+                                                    await fileService.deleteFile(formData.coverImage);
+                                                }
+                                                // Clear the cover image URL
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    coverImage: ''
+                                                }));
+                                            } catch (error) {
+                                                console.error('Error deleting image:', error);
+                                                setUploadError('Failed to delete image. Please try again.');
+                                            }
+                                        }}
+                                    >
+                                        Remove Image
+                                    </button>
                                 </div>
                             )}
 
                             {uploadError && <p className="error-text">{uploadError}</p>}
-                            {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
-
-                            <p className="input-help">Choose an image URL or upload a file (max 5MB, JPEG, PNG, GIF, WEBP)</p>
                         </div>
 
                         <div className="form-group">
