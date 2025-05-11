@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { updatePost, getPostBySlug } from '@/lib/api/postsService';
 import { apiClient, ApiError, AuthenticationError } from '@/lib/api/apiClient';
@@ -85,6 +86,12 @@ function EditArticleContent() {
     // State for publish status
     const [publishStatus, setPublishStatus] = useState<'published' | 'draft'>('draft');
 
+    // File upload state
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    //const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
+
     // Form state management
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,12 +104,14 @@ function EditArticleContent() {
 
     // Tags state
     const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+    const [isLoadingTags, setIsLoadingTags] = useState(false);
 
     /**
      * Fetch available tags from API
      */
     const fetchTags = useCallback(async () => {
         console.log('fetchTags called');
+        setIsLoadingTags(true);
 
         try {
             console.log('Making API request for tags');
@@ -128,6 +137,7 @@ function EditArticleContent() {
             setLoadError('Failed to load tags. Please try again.');
         } finally {
             console.log('Tags fetch completed');
+            setIsLoadingTags(false);
         }
     }, []);
 
@@ -249,6 +259,87 @@ function EditArticleContent() {
                     return updated;
                 });
             }
+        }
+    };
+
+    /**
+     * Handle file selection for cover image
+     */
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files && e.target.files[0];
+
+        // Reset previous errors
+        setUploadError(null);
+
+        if (!file) {
+            setSelectedFile(null);
+            setImagePreview(null);
+            return;
+        }
+
+        // Validate file type
+        if (!file.type.match('image/(jpeg|jpg|png|gif|webp)')) {
+            setUploadError('Please select a valid image file (JPEG, PNG, GIF, or WEBP)');
+            return;
+        }
+
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            setUploadError('File size must be less than 5MB');
+            return;
+        }
+
+        setSelectedFile(file);
+
+        // Create a preview URL
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Clear any coverImage-related errors
+        if (errors.coverImage) {
+            setErrors(prev => {
+                const updated = { ...prev };
+                delete updated.coverImage;
+                return updated;
+            });
+        }
+    };
+
+    /**
+     * Upload cover image file
+     */
+    const uploadCoverImage = async (file: File): Promise<string> => {
+        //setIsUploading(true);
+
+        try {
+            // Create a FormData object to send the file
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Create custom fetch options for file upload
+            const fetchOptions: RequestInit = {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            };
+
+            // Make the request
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876/api'}/uploads/images`, fetchOptions);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Failed to upload image: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.url; // Assuming the API returns an object with a url property
+        } finally {
+            //setIsUploading(false);
         }
     };
 
@@ -428,13 +519,26 @@ function EditArticleContent() {
                 throw new Error('Post slug is missing');
             }
 
+            // Handle file upload if a file was selected
+            let coverImageUrl = formData.coverImage;
+
+            if (selectedFile) {
+                try {
+                    coverImageUrl = await uploadCoverImage(selectedFile);
+                } catch (error) {
+                    setSubmitError(`Error uploading image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    setIsSubmitting(false);
+                    return;
+                }
+            }
+
             // Prepare API data format
             const postData = {
                 title: formData.title,
                 excerpt: formData.excerpt,
                 content: formData.content,
                 tags: parseTags(formData.tags),
-                cover: formData.coverImage,
+                cover: coverImageUrl,
                 status: publishStatus
             };
 
@@ -579,27 +683,74 @@ function EditArticleContent() {
 
                         <div className="form-group">
                             <label htmlFor="coverImage">
-                                Cover Image URL
+                                Cover Image
                             </label>
-                            <input
-                                id="coverImage"
-                                name="coverImage"
-                                type="url"
-                                value={formData.coverImage}
-                                onChange={handleChange}
-                                aria-invalid={!!errors.coverImage}
-                                aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
-                                placeholder="https://example.com/image.jpg"
-                                className={errors.coverImage ? "input-error" : ""}
-                                data-testid="article-cover-input"
-                            />
+
+                            <div className="cover-image-options">
+                                <div className="url-input-container">
+                                    <p className="input-label">Option 1: Enter image URL</p>
+                                    <input
+                                        id="coverImage"
+                                        name="coverImage"
+                                        type="url"
+                                        value={formData.coverImage}
+                                        onChange={handleChange}
+                                        aria-invalid={!!errors.coverImage}
+                                        aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
+                                        placeholder="https://example.com/image.jpg"
+                                        className={errors.coverImage ? "input-error" : ""}
+                                        data-testid="article-cover-input"
+                                    />
+                                </div>
+
+                                <div className="separator">
+                                    <span>OR</span>
+                                </div>
+
+                                <div className="file-upload-container">
+                                    <p className="input-label">Option 2: Upload an image file</p>
+                                    <input
+                                        type="file"
+                                        id="coverImageFile"
+                                        onChange={handleFileSelect}
+                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                        className="file-input"
+                                        data-testid="article-cover-file-input"
+                                    />
+                                    <label htmlFor="coverImageFile" className="file-input-label">
+                                        Choose File
+                                    </label>
+                                    {selectedFile && (
+                                        <span className="file-name">
+                                            Selected: {selectedFile.name}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {imagePreview && (
+                                <div className="image-preview">
+                                    <p className="preview-label">Image Preview:</p>
+                                    <Image
+                                        src={imagePreview}
+                                        alt="Cover preview"
+                                        className="cover-preview-image"
+                                        width={400}
+                                        height={200}
+                                        style={{ objectFit: 'contain' }}
+                                    />
+                                </div>
+                            )}
+
+                            {uploadError && <p className="error-text">{uploadError}</p>}
                             {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
-                            <p className="input-help">Enter a URL for the article cover image</p>
+
+                            <p className="input-help">Choose an image URL or upload a file (max 5MB, JPEG, PNG, GIF, WEBP)</p>
                         </div>
 
                         <div className="form-group">
                             <label htmlFor="tags">
-                                Tags <span className="required-mark">*</span>
+                                Tags (comma separated) <span className="required-mark">*</span>
                             </label>
                             <input
                                 id="tags"
@@ -611,42 +762,47 @@ function EditArticleContent() {
                                 aria-required="true"
                                 aria-invalid={!!errors.tags}
                                 aria-describedby={errors.tags ? "tags-error" : undefined}
-                                placeholder="Enter tags separated by commas"
+                                placeholder="e.g. Development, Next.js, React"
                                 className={errors.tags ? "input-error" : ""}
                                 data-testid="article-tags-input"
                             />
                             {errors.tags && <p id="tags-error" className="error-text">{errors.tags}</p>}
 
-                            <div className="tags-selector">
-                                <p className="tags-selector-label">Available tags (click to add):</p>
-                                <div className="tags-list">
-                                    {availableTags.map(tag => (
-                                        <button
-                                            key={tag.id}
-                                            type="button"
-                                            className="tag-button"
-                                            onClick={() => handleTagSelect(tag.name)}
-                                            data-testid={`tag-${tag.name}`}
-                                        >
-                                            {tag.name}
-                                        </button>
-                                    ))}
+                            <div className="available-tags">
+                                <div className="tags-container" data-testid="tags-selector">
+                                    {isLoadingTags ? (
+                                        <span className="tags-loading">Loading tags...</span>
+                                    ) : availableTags.length > 0 ? (
+                                        availableTags.map(tag => (
+                                            <button
+                                                key={tag.id}
+                                                type="button"
+                                                className="tag-pill"
+                                                onClick={() => handleTagSelect(tag.name)}
+                                                title={`${tag.post_count} posts with this tag`}
+                                            >
+                                                {tag.name} ({tag.post_count})
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <span className="no-tags">No tags available</span>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="form-group content-group">
+                        <div className="form-group">
                             <div className="content-header">
                                 <label htmlFor="content">
-                                    Article Content <span className="required-mark">*</span>
+                                    Content (Markdown supported) <span className="required-mark">*</span>
                                 </label>
                                 <button
                                     type="button"
-                                    className={`preview-toggle ${showPreview ? 'active' : ''}`}
+                                    className="preview-toggle-btn"
                                     onClick={togglePreview}
-                                    data-testid="preview-toggle"
+                                    data-testid="preview-toggle-button"
                                 >
-                                    {showPreview ? 'Edit' : 'Preview'}
+                                    {showPreview ? 'Edit Mode' : 'Preview Mode'}
                                 </button>
                             </div>
 
@@ -655,44 +811,43 @@ function EditArticleContent() {
                                     className="markdown-preview"
                                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                                     data-testid="markdown-preview"
+                                    aria-label="Markdown preview"
                                 />
                             ) : (
-                                <>
-                                    <textarea
-                                        id="content"
-                                        name="content"
-                                        value={formData.content}
-                                        onChange={handleChange}
-                                        required
-                                        aria-required="true"
-                                        aria-invalid={!!errors.content}
-                                        aria-describedby={errors.content ? "content-error" : undefined}
-                                        placeholder="Write your article content in Markdown format"
-                                        className={`content-editor ${errors.content ? "input-error" : ""}`}
-                                        data-testid="article-content-input"
-                                    />
-                                    {errors.content && <p id="content-error" className="error-text">{errors.content}</p>}
-                                    <p className="input-help">Markdown formatting is supported</p>
-                                </>
+                                <textarea
+                                    id="content"
+                                    name="content"
+                                    value={formData.content}
+                                    onChange={handleChange}
+                                    required
+                                    aria-required="true"
+                                    aria-invalid={!!errors.content}
+                                    aria-describedby={errors.content ? "content-error" : undefined}
+                                    placeholder="Write your article content here (Markdown supported)"
+                                    className={`code-editor ${errors.content ? "input-error" : ""}`}
+                                    data-testid="article-content-input"
+                                    rows={25}
+                                />
                             )}
+                            {errors.content && <p id="content-error" className="error-text">{errors.content}</p>}
                         </div>
 
-                        <div className="form-group publish-options">
-                            <label className="checkbox-label">
+                        <div className="publish-options">
+                            <label className="publish-toggle">
                                 <input
                                     type="checkbox"
                                     checked={publishStatus === 'published'}
                                     onChange={handleStatusToggle}
-                                    data-testid="publish-checkbox"
+                                    data-testid="publish-toggle"
                                 />
-                                <span className="checkbox-text">
-                                    {publishStatus === 'published' ? 'Published' : 'Draft'}
+                                <span className="publish-toggle-text">
+                                    {publishStatus === 'published' ? 'Published' : 'Save as draft'}
                                 </span>
                             </label>
-                            <p className="status-help">
+                            <p className="publish-description">
                                 {publishStatus === 'published'
-                                    ? 'This article is visible to all users'
-                                    : 'This article is only visible to editors'}
+                                    ? 'When published, the article will be visible to all users'
+                                    : 'As a draft, the article will only be visible to editors'}
                             </p>
                         </div>
 
