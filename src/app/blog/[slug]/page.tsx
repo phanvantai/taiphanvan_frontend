@@ -9,11 +9,12 @@ import { markdownToHtml } from '@/lib/markdown';
 import '@/components/blog-post-card.css'; // Import the CSS for meta styling
 
 // This generates metadata for each blog post dynamically
-export async function generateMetadata({
-    params
-}: {
-    params: { slug: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+    props: {
+        params: Promise<{ slug: string }>
+    }
+): Promise<Metadata> {
+    const params = await props.params;
     // Create a local copy of the params to ensure it's properly resolved
     const resolvedParams = await Promise.resolve(params);
     const post = await getPostBySlug(resolvedParams.slug);
@@ -54,10 +55,10 @@ export async function generateMetadata({
 
 // Define the page component
 export default async function BlogPostPage(props: {
-    params: { slug: string }
+    params: Promise<{ slug: string }>
 }) {
     // Create a local copy of the params to ensure it's properly resolved
-    const params = await Promise.resolve(props.params);
+    const params = await Promise.resolve((await props.params));
     const { slug } = params;
 
     const post = await getPostBySlug(slug);

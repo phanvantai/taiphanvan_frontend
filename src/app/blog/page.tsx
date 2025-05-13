@@ -3,11 +3,12 @@ import { getAllPosts, getAllTags } from "@/lib/blog";
 import BlogPostCard from "@/components/BlogPostCard";
 import "./blog.css";
 
-export default async function BlogPage({
-    searchParams,
-}: {
-    searchParams: { [key: string]: string | string[] | undefined };
-}) {
+export default async function BlogPage(
+    props: {
+        searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+    }
+) {
+    const searchParams = await props.searchParams;
     // Get the tag filter from the URL if present
     const tagFilter = searchParams.tag as string | undefined;
 
