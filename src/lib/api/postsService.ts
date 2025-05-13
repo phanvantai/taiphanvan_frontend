@@ -206,23 +206,28 @@ export class PostsService {
      * @returns Promise with the updated post
      */
     async updatePost(id: number, postData: Partial<BlogPost> | UpdatePostData): Promise<BlogPost> {
-        // If postData contains tags as BlogTagMinimal[], format them for the API
-        const formattedData = { ...postData };
+        // Create a new request object for the API
+        const apiRequestData: Record<string, string | string[] | undefined> = {
+            title: postData.title,
+            excerpt: postData.excerpt,
+            content: postData.content,
+            cover: postData.cover,
+            status: postData.status
+        };
 
-        if ('tags' in postData && Array.isArray(postData.tags)) {
-            // Check if the tags are BlogTagMinimal (they won't have a required id)
-            const hasBlogTagMinimal = postData.tags.some(tag => !('id' in tag) || tag.id === undefined);
-
-            if (hasBlogTagMinimal) {
-                // Format tags as expected by the API
-                // Convert tag names to string array and then create a proper request object
-                const tagNames = getTagNames(postData.tags);
-                // Convert back to BlogTagMinimal[] format
-                formattedData.tags = tagNames.map(name => ({ name }));
+        // Only include defined properties
+        Object.keys(apiRequestData).forEach(key => {
+            if (apiRequestData[key] === undefined) {
+                delete apiRequestData[key];
             }
+        });
+
+        // Handle tags separately - convert to string array for API
+        if ('tags' in postData && Array.isArray(postData.tags)) {
+            apiRequestData.tags = getTagNames(postData.tags);
         }
 
-        const response = await apiClient.put<{ post: BlogPost }>(`/posts/${id}`, formattedData, {
+        const response = await apiClient.put<{ post: BlogPost }>(`/posts/${id}`, apiRequestData, {
             requiresAuth: true
         });
 

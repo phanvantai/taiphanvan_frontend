@@ -392,3 +392,48 @@
     font-weight: 500;
     color: var(--text-color);
 }
+
+.publish-description {
+    font-size: 0.875rem;
+    color: var(--text-muted-color);
+    margin-top: 0.5rem;
+    margin-left: 28px;
+}
+
+/* Cover image upload styles */
+.cover-image-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.cover-image-input {
+    flex: 1;
+}
+
+.cover-image-upload {
+    flex: 1;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
+
+.cover-image-upload h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+/* Responsive layout for larger screens */
+@media (min-width: 768px) {
+    .cover-image-container {
+        flex-direction: row;
+    }
+
+    .cover-image-upload {
+        border-top: none;
+        border-left: 1px solid var(--border-color);
+        padding-top: 0;
+        padding-left: 1.5rem;
+    }
+}

@@ -7,6 +7,7 @@ import { postsService, CreatePostData } from '@/lib/api/postsService';
 import { apiClient, ApiError, AuthenticationError } from '@/lib/api/apiClient';
 import { BlogTag, BlogTagMinimal, parseTagsString, cleanTagName } from '@/models/BlogTag';
 import { markdownToHtml } from '@/lib/markdown';
+import FileUploader from '@/components/FileUploader';
 import './create-article.css';
 
 /**
@@ -53,8 +54,8 @@ export default function CreateArticlePage() {
         coverImage: ''
     });
 
-    // State for publish immediately option
-    const [publishImmediately, setPublishImmediately] = useState(false);
+    // State for publish status
+    const [publishStatus, setPublishStatus] = useState<'published' | 'draft'>('draft');
 
     // Form state management
     const [errors, setErrors] = useState<FormErrors>({});
@@ -261,16 +262,16 @@ export default function CreateArticlePage() {
                 content: formData.content,
                 tags: parseTags(formData.tags),
                 cover: formData.coverImage,
-                status: publishImmediately ? 'published' as const : 'draft' as const
+                status: publishStatus
             };
 
-            // If publishing immediately, add the current date
-            if (publishImmediately) {
+            // If publishing, add the current date
+            if (publishStatus === 'published') {
                 postData.publish_at = new Date().toISOString();
             }
 
-            // Submit to API - passing publishImmediately flag
-            const response = await postsService.createPost(postData, publishImmediately);
+            // Submit to API - passing publish status
+            const response = await postsService.createPost(postData, publishStatus === 'published');
 
             // Handle success
             setSubmitSuccess(true);
@@ -304,10 +305,10 @@ export default function CreateArticlePage() {
     };
 
     /**
-     * Toggle publish immediately option
+     * Toggle publish status
      */
-    const handlePublishToggle = () => {
-        setPublishImmediately(prev => !prev);
+    const handleStatusToggle = () => {
+        setPublishStatus(prev => prev === 'published' ? 'draft' : 'published');
     };
 
     // Show loading spinner while checking auth
@@ -475,33 +476,46 @@ export default function CreateArticlePage() {
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="coverImage">Cover Image URL</label>
-                            <input
-                                id="coverImage"
-                                name="coverImage"
-                                type="text"
-                                value={formData.coverImage}
-                                onChange={handleChange}
-                                aria-invalid={!!errors.coverImage}
-                                aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
-                                placeholder="https://example.com/image.jpg"
-                                className={errors.coverImage ? "input-error" : ""}
-                                data-testid="article-cover-image-input"
-                            />
-                            {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
-                        </div>
+                            <label htmlFor="coverImage">Cover Image</label>
+                            <div className="cover-image-container">
+                                <div className="cover-image-input">
+                                    <input
+                                        id="coverImage"
+                                        name="coverImage"
+                                        type="text"
+                                        value={formData.coverImage}
+                                        onChange={handleChange}
+                                        aria-invalid={!!errors.coverImage}
+                                        aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
+                                        placeholder="https://example.com/image.jpg"
+                                        className={errors.coverImage ? "input-error" : ""}
+                                        data-testid="article-cover-image-input"
+                                    />
+                                    {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
+                                </div>
 
-                        <div className="form-group">
-                            <div className="toggle-container">
-                                <button
-                                    type="button"
-                                    className={`toggle-button ${publishImmediately ? 'active' : ''}`}
-                                    onClick={handlePublishToggle}
-                                    aria-pressed={publishImmediately}
-                                    data-testid="publish-immediately-toggle"
-                                >
-                                    <span className="toggle-thumb"></span>
-                                </button>
+                                <div className="cover-image-upload">
+                                    <h4>Or upload an image</h4>
+                                    <FileUploader
+                                        acceptedFileTypes="image/jpeg,image/jpg,image/png,image/webp"
+                                        maxSizeMB={5}
+                                        onFileUploaded={(fileUrl) => {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                coverImage: fileUrl
+                                            }));
+
+                                            // Clear any cover image errors
+                                            if (errors.coverImage) {
+                                                setErrors(prev => {
+                                                    const updated = { ...prev };
+                                                    delete updated.coverImage;
+                                                    return updated;
+                                                });
+                                            }
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -509,14 +523,19 @@ export default function CreateArticlePage() {
                             <label className="publish-toggle">
                                 <input
                                     type="checkbox"
-                                    checked={publishImmediately}
-                                    onChange={handlePublishToggle}
+                                    checked={publishStatus === 'published'}
+                                    onChange={handleStatusToggle}
                                     data-testid="publish-toggle"
                                 />
                                 <span className="publish-toggle-text">
-                                    {publishImmediately ? 'Publish immediately' : 'Save as draft'}
+                                    {publishStatus === 'published' ? 'Published' : 'Save as draft'}
                                 </span>
                             </label>
+                            <p className="publish-description">
+                                {publishStatus === 'published'
+                                    ? 'When published, the article will be visible to all users'
+                                    : 'As a draft, the article will only be visible to editors'}
+                            </p>
                         </div>
 
                         <div className="form-actions">
@@ -540,7 +559,7 @@ export default function CreateArticlePage() {
                                         <span className="button-spinner" aria-hidden="true"></span>
                                         Creating...
                                     </>
-                                ) : publishImmediately ? 'Publish Article' : 'Save as Draft'}
+                                ) : publishStatus === 'published' ? 'Publish Article' : 'Save as Draft'}
                             </button>
                         </div>
                     </form>

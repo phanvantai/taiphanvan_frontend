@@ -81,3 +81,211 @@
         width: 30%;
     }
 }
+
+/* Content editor styling */
+.code-editor {
+    font-family: monospace;
+    min-height: 400px;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Preview toggle button styles */
+.preview-toggle-btn {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--background-alt-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preview-toggle-btn:hover {
+    background-color: var(--border-color);
+}
+
+/* Tag selection styles for editing page */
+.available-tags {
+    margin-top: 0.75rem;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tag-pill {
+    background-color: var(--background-alt-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-pill:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.tags-loading {
+    font-size: 0.875rem;
+    color: var(--text-muted-color);
+    font-style: italic;
+}
+
+.no-tags {
+    font-size: 0.875rem;
+    color: var(--text-muted-color);
+    font-style: italic;
+}
+
+/* Publish options styles */
+.publish-options {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: var(--background-alt-color);
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.publish-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.publish-toggle input[type="checkbox"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+.publish-toggle-text {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.publish-description {
+    font-size: 0.875rem;
+    color: var(--text-muted-color);
+    margin-top: 0.5rem;
+    margin-left: 28px;
+}
+
+/* Cover image upload styles */
+.cover-image-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.cover-image-input {
+    flex: 1;
+}
+
+.cover-image-upload {
+    flex: 1;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
+
+.cover-image-upload h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.current-image {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.current-image h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+/* Cover image URL display styles */
+.cover-image-url-display {
+    margin-bottom: 1.5rem;
+}
+
+.url-display-box {
+    background-color: var(--background-alt-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: var(--text-muted-color);
+    word-break: break-all;
+    line-height: 1.5;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+.image-preview {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--background-alt-color);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.image-preview h4 {
+    align-self: flex-start;
+    margin-bottom: 1rem;
+}
+
+.cover-preview-image {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 5px;
+}
+
+.delete-image-btn {
+    display: block;
+    margin: 0 auto;
+    background-color: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fc8181;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-image-btn:hover {
+    background-color: #fed7d7;
+}
+
+/* Responsive layout for larger screens */
+@media (min-width: 768px) {
+    .cover-image-container {
+        flex-direction: row;
+    }
+
+    .cover-image-upload {
+        border-top: none;
+        border-left: 1px solid var(--border-color);
+        padding-top: 0;
+        padding-left: 1.5rem;
+    }
+}
