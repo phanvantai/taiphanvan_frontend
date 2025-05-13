@@ -478,14 +478,15 @@ function EditArticleContent() {
                 throw new Error('Post ID is missing');
             }
 
-            const response = await updatePost(originalPost.id, postData);
+            // Update the post and ignore the response since we don't need it
+            await updatePost(originalPost.id, postData);
 
             // Handle success
             setSubmitSuccess(true);
 
-            // Redirect after a brief delay to show success message
+            // Redirect to the blog page after a brief delay to show success message
             setTimeout(() => {
-                router.push(`/blog/${response.slug}`);
+                router.push('/blog');
             }, 1500);
 
         } catch (error: unknown) {
@@ -561,7 +562,7 @@ function EditArticleContent() {
                         <svg aria-hidden="true" className="success-icon" viewBox="0 0 24 24">
                             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
                         </svg>
-                        <p>Article updated successfully! Redirecting to your updated post...</p>
+                        <p>Article updated successfully! Redirecting to the blog page...</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} noValidate>
@@ -614,37 +615,19 @@ function EditArticleContent() {
 
                         <div className="form-group">
                             <label htmlFor="coverImage">Cover Image</label>
-                            <div className="cover-image-container">
-                                <div className="cover-image-input">
-                                    <input
-                                        id="coverImage"
-                                        name="coverImage"
-                                        type="text"
-                                        value={formData.coverImage}
-                                        onChange={handleChange}
-                                        aria-invalid={!!errors.coverImage}
-                                        aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
-                                        placeholder="https://example.com/image.jpg"
-                                        className={errors.coverImage ? "input-error" : ""}
-                                        data-testid="article-cover-image-input"
-                                    />
-                                    {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
-                                </div>
 
-                                <div className="cover-image-upload">
-                                    <h4>Or upload an image</h4>
-                                    <FileUploader
-                                        acceptedFileTypes="image/jpeg,image/jpg,image/png,image/webp"
-                                        maxSizeMB={5}
-                                        onFileUploaded={handleFileUploaded}
-                                    />
-                                </div>
-                            </div>
-
-                            {formData.coverImage && (
+                            {/* If post has a cover image, show it with delete option */}
+                            {formData.coverImage ? (
                                 <div className="current-image">
-                                    <h4>Current Cover Image</h4>
+                                    <div className="cover-image-url-display">
+                                        <h4>Current Cover Image URL</h4>
+                                        <div className="url-display-box">
+                                            {formData.coverImage}
+                                        </div>
+                                    </div>
+
                                     <div className="image-preview">
+                                        <h4>Preview</h4>
                                         <Image
                                             src={formData.coverImage}
                                             alt="Cover preview"
@@ -654,6 +637,7 @@ function EditArticleContent() {
                                             style={{ objectFit: 'contain' }}
                                         />
                                     </div>
+
                                     <button
                                         type="button"
                                         className="delete-image-btn"
@@ -676,6 +660,35 @@ function EditArticleContent() {
                                     >
                                         Remove Image
                                     </button>
+                                </div>
+                            ) : (
+                                /* If no cover image, show input options */
+                                <div className="cover-image-container">
+                                    <div className="cover-image-input">
+                                        <h4>Enter Image URL</h4>
+                                        <input
+                                            id="coverImage"
+                                            name="coverImage"
+                                            type="text"
+                                            value={formData.coverImage}
+                                            onChange={handleChange}
+                                            aria-invalid={!!errors.coverImage}
+                                            aria-describedby={errors.coverImage ? "coverImage-error" : undefined}
+                                            placeholder="https://example.com/image.jpg"
+                                            className={errors.coverImage ? "input-error" : ""}
+                                            data-testid="article-cover-image-input"
+                                        />
+                                        {errors.coverImage && <p id="coverImage-error" className="error-text">{errors.coverImage}</p>}
+                                    </div>
+
+                                    <div className="cover-image-upload">
+                                        <h4>Or upload an image</h4>
+                                        <FileUploader
+                                            acceptedFileTypes="image/jpeg,image/jpg,image/png,image/webp"
+                                            maxSizeMB={5}
+                                            onFileUploaded={handleFileUploaded}
+                                        />
+                                    </div>
                                 </div>
                             )}
 
