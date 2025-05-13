@@ -1,0 +1,18 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appIDs": [
+                    "9L439MV268.com.stringee.cogoverMobile"
+                ],
+                "components": [
+                    {
+                        "/": "*",
+                        "comment": "Allows universal links for all paths on cogover.com"
+                    }
+                ]
+            }
+        ]
+    }
+}
