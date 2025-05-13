@@ -18,12 +18,8 @@ export const metadata: Metadata = {
   title: "Tai Phan Van | Blog & News",
   description: "A blog where Tai Phan Van shares thoughts and experiences",
   icons: {
-    icon: [
-      { url: '/images/logo.png' }
-    ],
-    apple: [
-      { url: '/images/logo.png' }
-    ]
+    icon: '/favicon.ico',
+    apple: '/images/logo.png'
   }
 };
 
