@@ -10,14 +10,24 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading, user } = useAuth();
+
+    // Check if user has admin or editor role
+    const hasAdminAccess = user?.role === 'admin' || user?.role === 'editor';
 
     useEffect(() => {
-        // Redirect to login if not authenticated and not loading
-        if (!isAuthenticated && !isLoading) {
-            redirect('/login?redirect=/dashboard');
+        // Redirect to home if not authenticated or doesn't have admin/editor role
+        if (!isLoading) {
+            // First check if not authenticated at all
+            if (!isAuthenticated) {
+                redirect('/login?redirect=/dashboard');
+            }
+            // Then check if authenticated but doesn't have admin/editor role
+            else if (!hasAdminAccess) {
+                redirect('/');
+            }
         }
-    }, [isAuthenticated, isLoading]);
+    }, [isAuthenticated, isLoading, hasAdminAccess]);
 
     // Show loading state while checking authentication
     if (isLoading) {
@@ -33,12 +43,12 @@ export default function DashboardLayout({
         );
     }
 
-    // Only render children if authenticated
-    return (
+    // Only render children if authenticated and has admin access
+    return hasAdminAccess ? (
         <div className="dashboard-layout">
             <div className="dashboard-container">
                 {children}
             </div>
         </div>
-    );
+    ) : null; // This null should never be rendered due to the redirect in useEffect
 }
