@@ -1,6 +1,7 @@
 import { fetchPosts } from "@/lib/blog";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturedPosts from "@/components/home/FeaturedPosts";
+import FeaturedNews from "@/components/home/FeaturedNews";
 import NewsletterSection from "@/components/home/NewsletterSection";
 import styles from "./page.module.css";
 
@@ -17,6 +18,7 @@ export default async function Home() {
     <div className={styles.container} data-testid="home-page">
       <HeroSection />
       <FeaturedPosts posts={featuredPosts} />
+      <FeaturedNews />
       <NewsletterSection />
     </div>
   );

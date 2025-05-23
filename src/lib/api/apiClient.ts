@@ -118,11 +118,26 @@ export class ApiClient {
     private async processResponse<T>(response: Response): Promise<ApiResponse<T>> {
         // Handle HTTP error responses
         if (!response.ok) {
+            // For error responses, first try to get the response as text
+            const responseText = await response.text();
             let errorData;
+
             try {
-                errorData = await response.json();
-            } catch (error) {
-                errorData = { message: 'Unknown error occurred' + error };
+                // Try to parse as JSON only if it looks like JSON
+                if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
+                    errorData = JSON.parse(responseText);
+                } else {
+                    // If not JSON, create a meaningful error object
+                    errorData = {
+                        message: `Server returned non-JSON error: ${responseText.substring(0, 100)}${responseText.length > 100 ? '...' : ''}`
+                    };
+                }
+            } catch (parseError) {
+                // If JSON parsing fails, create a meaningful error object
+                errorData = {
+                    message: `Failed to parse error response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+                    responseText: responseText.substring(0, 200) // Include part of the response for debugging
+                };
             }
 
             const errorMessage = errorData.message || `HTTP error ${response.status}`;
@@ -156,14 +171,39 @@ export class ApiClient {
             throw new ApiError(errorMessage, response.status, errorData);
         }
 
-        // Parse JSON response
-        const data = await response.json() as T;
+        try {
+            // Get the response as text first
+            const responseText = await response.text();
 
-        return {
-            data,
-            status: response.status,
-            headers: response.headers
-        };
+            // Try to parse as JSON
+            let data;
+            try {
+                data = JSON.parse(responseText) as T;
+            } catch (parseError) {
+                console.error('Error parsing JSON response:', parseError);
+                throw new ApiError(
+                    `Error parsing JSON response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+                    response.status,
+                    {
+                        originalError: parseError,
+                        responseText: responseText.substring(0, 200) // Include part of the response for debugging
+                    }
+                );
+            }
+
+            return {
+                data,
+                status: response.status,
+                headers: response.headers
+            };
+        } catch (error) {
+            console.error('Error processing response:', error);
+            throw new ApiError(
+                `Error processing response: ${error instanceof Error ? error.message : String(error)}`,
+                response.status,
+                { originalError: error }
+            );
+        }
     }
 
     /**
