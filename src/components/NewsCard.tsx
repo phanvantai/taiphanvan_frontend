@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { News } from '@/models/News';
 import NewsImage from './NewsImage';
+import { decodeHtmlEntitiesClient } from '@/lib/utils/textUtils';
 import './news-card.css';
 
 /**
@@ -33,7 +34,7 @@ export default function NewsCard({ item }: { item: News }) {
             />
             <div className="newsContent">
                 <h2 className="newsTitle">{item.title}</h2>
-                <p className="newsSummary">{item.summary}</p>
+                <p className="newsSummary">{decodeHtmlEntitiesClient(item.summary)}</p>
                 <div className="newsFooter">
                     <span className="newsSource">{item.source}</span>
                     <span className="newsDate">{formatDate(item.publish_date)}</span>
