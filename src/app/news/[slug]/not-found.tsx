@@ -1,21 +1,23 @@
+"use client";
+
 import Link from 'next/link';
 
 export default function NewsNotFound() {
-    return (
-        <div className="not-found-container">
-            <h1>Article Not Found</h1>
-            <p>The news article you were looking for could not be found.</p>
-            <p>This could be because:</p>
-            <ul>
-                <li>The article has been removed</li>
-                <li>The URL is incorrect</li>
-                <li>The article is no longer available</li>
-            </ul>
-            <Link href="/news" className="back-button">
-                Return to News
-            </Link>
+  return (
+    <div className="not-found-container">
+      <h1>Article Not Found</h1>
+      <p>The news article you were looking for could not be found.</p>
+      <p>This could be because:</p>
+      <ul>
+        <li>The article has been removed</li>
+        <li>The URL is incorrect</li>
+        <li>The article is no longer available</li>
+      </ul>
+      <Link href="/news" className="back-button">
+        Return to News
+      </Link>
 
-            <style jsx>{`
+      <style jsx>{`
         .not-found-container {
           display: flex;
           flex-direction: column;
@@ -67,6 +69,6 @@ export default function NewsNotFound() {
           background-color: var(--bg-accent-hover);
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
