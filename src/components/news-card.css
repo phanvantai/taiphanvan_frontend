@@ -1,0 +1,113 @@
+/**
+ * News Card component CSS module
+ */
+.newsCard {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-bg-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.newsCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.newsImageContainer {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    /* 16:9 aspect ratio */
+    background-color: var(--background-alt-color);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+}
+
+/* The NewsImage component is styled in news-image.css */
+
+.placeholderImage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background-color: var(--background-alt-color);
+    color: var(--text-muted-color);
+    font-size: 1.5rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.newsContent {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-bg-color);
+}
+
+.newsTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.newsCard:hover .newsTitle {
+    color: var(--secondary-color);
+    text-decoration: underline;
+    text-decoration-color: var(--secondary-color);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+
+.newsSummary {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.newsFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted-color);
+}
+
+.newsSource {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    transition: all 0.3s ease;
+}
+
+.newsCard:hover .newsSource {
+    background-color: var(--secondary-color);
+}
+
+.newsDate {
+    font-style: italic;
+    opacity: 0.8;
+}

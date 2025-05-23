@@ -1,0 +1,61 @@
+/* NewsImage component styles */
+
+.newsImageWrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px 8px 0 0;
+    background-color: var(--bg-secondary);
+}
+
+.newsImageElement {
+    transition: transform 0.3s ease;
+}
+
+/* Hover effect - subtle zoom */
+.newsImageWrapper:hover .newsImageElement {
+    transform: scale(1.05);
+}
+
+/* Shimmer effect for image loading */
+.newsImageWrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            var(--bg-secondary) 0%,
+            var(--bg-primary) 50%,
+            var(--bg-secondary) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    z-index: 1;
+    opacity: 0;
+}
+
+.newsImageLoading::before {
+    opacity: 0.8;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Dark mode adjustments */
+:global(.dark) .newsImageWrapper {
+    background-color: var(--bg-secondary-dark, #333);
+}
+
+:global(.dark) .newsImageWrapper::before {
+    background: linear-gradient(90deg,
+            var(--bg-secondary-dark, #333) 0%,
+            var(--bg-primary-dark, #444) 50%,
+            var(--bg-secondary-dark, #333) 100%);
+}

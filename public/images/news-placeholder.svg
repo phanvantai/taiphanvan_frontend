@@ -1,0 +1,8 @@
+<!-- This is a placeholder SVG for news articles without images -->
+<svg width="800" height="450" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="450" fill="#f0f0f0"/>
+  <text x="400" y="225" font-family="Arial, sans-serif" font-size="32" text-anchor="middle" dominant-baseline="middle" fill="#666">News Article</text>
+  <path d="M300 170 L500 170 L500 200 L300 200 Z" fill="#888"/>
+  <path d="M300 220 L500 220 L500 240 L300 240 Z" fill="#888"/>
+  <path d="M300 260 L450 260 L450 280 L300 280 Z" fill="#888"/>
+</svg>

@@ -18,6 +18,9 @@ export default function Header() {
     const userMenuRef = useRef<HTMLDivElement>(null);
     const { user, logout, isAuthenticated } = useAuth();
 
+    // Check if user has admin or editor role
+    const hasAdminAccess = user?.role === 'admin' || user?.role === 'editor';
+
     useEffect(() => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 10);
@@ -108,9 +111,9 @@ export default function Header() {
                         <Link href="/" className="nav-link">
                             Home
                         </Link>
-                        {/* <Link href="/news" className="nav-link">
+                        <Link href="/news" className="nav-link">
                             News
-                        </Link> */}
+                        </Link>
                         <Link href="/blog" className="nav-link">
                             Blog
                         </Link>
@@ -188,14 +191,17 @@ export default function Header() {
                                                 Your Profile
                                             </Link>
 
-                                            <Link
-                                                href="/dashboard"
-                                                className="menu-button"
-                                                onClick={() => setUserMenuOpen(false)}
-                                            >
-                                                <i className="fas fa-tachometer-alt menu-icon"></i>
-                                                Dashboard
-                                            </Link>
+                                            {/* Only show Dashboard link for admin or editor roles */}
+                                            {hasAdminAccess && (
+                                                <Link
+                                                    href="/dashboard"
+                                                    className="menu-button"
+                                                    onClick={() => setUserMenuOpen(false)}
+                                                >
+                                                    <i className="fas fa-tachometer-alt menu-icon"></i>
+                                                    Dashboard
+                                                </Link>
+                                            )}
 
                                             {/* <Link
                                                 href="/settings"
