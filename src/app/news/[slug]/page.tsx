@@ -9,11 +9,12 @@ import '../news.css';
 import NewsDetailLoading from './loading';
 
 // Generate metadata for this page
-export async function generateMetadata({
-    params
-}: {
-    params: { slug: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+    props: {
+        params: Promise<{ slug: string }>
+    }
+): Promise<Metadata> {
+    const params = await props.params;
     try {
         const news = await newsService.getNewsBySlug(params.slug);
 
@@ -94,11 +95,12 @@ async function NewsDetail({ news }: { news: News }) {
 }
 
 // News Detail Page
-export default async function NewsDetailPage({
-    params
-}: {
-    params: { slug: string }
-}) {
+export default async function NewsDetailPage(
+    props: {
+        params: Promise<{ slug: string }>
+    }
+) {
+    const params = await props.params;
     return (
         <Suspense fallback={<NewsDetailLoading />}>
             <NewsDetailContent params={params} />

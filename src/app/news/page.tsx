@@ -153,13 +153,14 @@ async function NewsList({ page = 1 }: { page?: number }) {
 /**
  * Main News Page component
  */
-export default function NewsPage({
-    searchParams
-}: {
-    searchParams?: {
-        page?: string
+export default async function NewsPage(
+    props: {
+        searchParams?: Promise<{
+            page?: string
+        }>
     }
-}) {
+) {
+    const searchParams = await props.searchParams;
     // Use a default value of 1 if searchParams.page is not provided or cannot be parsed
     const pageParam = searchParams?.page;
     const page = pageParam ? Number(pageParam) : 1;
