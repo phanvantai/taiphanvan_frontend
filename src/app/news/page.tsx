@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { newsService } from '@/lib/api/newsService';
 import NewsCard from '@/components/NewsCard';
+import PaginationClient from '@/components/Pagination';
 import './news.css';
 
 /**
@@ -27,77 +28,6 @@ function NewsLoading() {
                     </div>
                 ))}
             </div>
-        </div>
-    );
-}
-
-/**
- * Pagination component
- */
-function Pagination({
-    currentPage,
-    totalPages,
-    onPageChange
-}: {
-    currentPage: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
-}) {
-    const pageNumbers = [];
-    const maxPageButtons = 5;
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
-    const endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
-
-    if (endPage - startPage + 1 < maxPageButtons) {
-        startPage = Math.max(1, endPage - maxPageButtons + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-    }
-
-    return (
-        <div className="pagination">
-            <button
-                className="pageButton"
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-            >
-                &lt;
-            </button>
-
-            {startPage > 1 && (
-                <>
-                    <button className="pageButton" onClick={() => onPageChange(1)}>1</button>
-                    {startPage > 2 && <span>...</span>}
-                </>
-            )}
-
-            {pageNumbers.map(number => (
-                <button
-                    key={number}
-                    className={`pageButton ${currentPage === number ? 'active' : ''}`}
-                    onClick={() => onPageChange(number)}
-                >
-                    {number}
-                </button>
-            ))}
-
-            {endPage < totalPages && (
-                <>
-                    {endPage < totalPages - 1 && <span>...</span>}
-                    <button className="pageButton" onClick={() => onPageChange(totalPages)}>{totalPages}</button>
-                </>
-            )}
-
-            <button
-                className="pageButton"
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-            >
-                &gt;
-            </button>
         </div>
     );
 }
@@ -137,13 +67,10 @@ async function NewsList({ page = 1 }: { page?: number }) {
             </div>
 
             {newsData.total_pages > 1 && (
-                <Pagination
+                <PaginationClient
                     currentPage={newsData.page}
                     totalPages={newsData.total_pages}
-                    onPageChange={(newPage) => {
-                        // This will be handled client-side with a search params update
-                        window.location.href = `/news?page=${newPage}`;
-                    }}
+                    basePath="/news"
                 />
             )}
         </div>
@@ -153,14 +80,13 @@ async function NewsList({ page = 1 }: { page?: number }) {
 /**
  * Main News Page component
  */
-export default async function NewsPage(
-    props: {
-        searchParams?: Promise<{
-            page?: string
-        }>
+export default function NewsPage({
+    searchParams
+}: {
+    searchParams?: {
+        page?: string
     }
-) {
-    const searchParams = await props.searchParams;
+}) {
     // Use a default value of 1 if searchParams.page is not provided or cannot be parsed
     const pageParam = searchParams?.page;
     const page = pageParam ? Number(pageParam) : 1;
