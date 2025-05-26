@@ -36,6 +36,10 @@ describe('CreateArticlePage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.useFakeTimers();
+
+        // Reset the router mock specifically
+        mockRouter.push.mockClear();
 
         // Setup mocks
         (useRouter as jest.Mock).mockReturnValue(mockRouter);
@@ -50,6 +54,11 @@ describe('CreateArticlePage', () => {
             title: 'Test Title',
             slug: 'test-title'
         });
+    });
+
+    afterEach(() => {
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
     });
 
     it('redirects non-editor users to the blog page', () => {
@@ -131,17 +140,17 @@ describe('CreateArticlePage', () => {
                 excerpt: 'Test excerpt',
                 content: 'Test content',
                 tags: [
-                    { id: 0, name: 'test' },
-                    { id: 1, name: 'nextjs' }
+                    { name: 'test' },
+                    { name: 'nextjs' }
                 ],
                 cover: '',
-                status: 'published'
-            });
+                status: 'draft'
+            }, false);
         });
 
         // Check that success message is shown and redirection happens
         await waitFor(() => {
-            expect(screen.getByText('Article created successfully!')).toBeInTheDocument();
+            expect(screen.getByText('Article created successfully! Redirecting to your new post...')).toBeInTheDocument();
         });
 
         // Let the setTimeout run
@@ -207,8 +216,16 @@ describe('CreateArticlePage', () => {
             expect(screen.queryByTestId('article-content-input')).not.toBeInTheDocument();
         });
 
-        // Check preview content is rendered
-        expect(screen.getByTestId('markdown-preview').innerHTML).toContain('Formatted content');
+        // Wait for the markdownToHtml function to be called and preview content to be updated
+        await waitFor(() => {
+            expect(markdownToHtml).toHaveBeenCalledWith('# Markdown Content');
+        });
+
+        // Check preview content is rendered (with additional wait time for async update)
+        await waitFor(() => {
+            const previewElement = screen.getByTestId('markdown-preview');
+            expect(previewElement.innerHTML).toContain('Formatted content');
+        }, { timeout: 2000 });
 
         // Click back to edit mode
         fireEvent.click(screen.getByTestId('preview-toggle-button'));
