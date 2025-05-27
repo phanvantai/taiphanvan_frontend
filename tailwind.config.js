@@ -5,6 +5,7 @@ module.exports = {
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
         './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     ],
+    darkMode: ['selector', '[data-theme="dark"]'],
     theme: {
         extend: {
             colors: {
@@ -12,6 +13,7 @@ module.exports = {
             },
             fontFamily: {
                 // You can add custom fonts here
+                'poppins': ['Poppins', 'system-ui', 'sans-serif'],
             },
         },
     },
