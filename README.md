@@ -85,6 +85,10 @@ The project uses a combination of:
 
 This website can be easily deployed on [Vercel](https://vercel.com/new) or any other platform that supports Next.js.
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
 ## Development Tools
 
 - Turbopack for fast development experience

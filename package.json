@@ -2,6 +2,7 @@
   "name": "taiphanvan_frontend",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "eslint --fix"
   },
