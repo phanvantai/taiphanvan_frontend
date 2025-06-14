@@ -13,11 +13,17 @@
     "lint": "next lint",
     "prepare": "husky install",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "validate-analytics": "tsx src/scripts/validate-analytics.ts",
+    "prebuild": "npm run validate-analytics"
   },
   "dependencies": {
+    "@next/third-parties": "^15.3.3",
+    "@types/js-cookie": "^3.0.6",
+    "js-cookie": "^3.0.5",
     "next": "15.3.1",
     "react": "^19.0.0",
+    "react-cookie-consent": "^9.0.0",
     "react-dom": "^19.0.0",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",

@@ -14,20 +14,19 @@ interface TypingSpeedTestProps {
     className?: string;
 }
 
-const TypingSpeedTest: React.FC<TypingSpeedTestProps> = ({ className = '' }) => {
-    // Sample paragraphs for typing practice
-    const sampleTexts = [
-        "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet at least once. It has been used for decades to test typewriters and computer keyboards, as well as to display fonts and test typing skills.",
-        "Technology has revolutionized the way we communicate, work, and live our daily lives. From smartphones that connect us instantly to artificial intelligence that assists with complex tasks, innovation continues to shape our future in remarkable ways.",
-        "Reading books expands our knowledge, improves vocabulary, and enhances critical thinking skills. Whether fiction or non-fiction, each page offers new perspectives and insights that contribute to personal growth and intellectual development throughout our lives.",
-        "Climate change represents one of the most significant challenges facing humanity today. Rising temperatures, melting ice caps, and extreme weather patterns require immediate action from governments, businesses, and individuals to ensure a sustainable future for generations to come.",
-        "The art of cooking combines creativity, science, and tradition to create delicious meals that bring people together. From selecting fresh ingredients to mastering various techniques, culinary skills develop through practice, patience, and a willingness to experiment with flavors.",
-        "Space exploration continues to captivate human imagination and push the boundaries of scientific knowledge. From landing on the moon to sending rovers to Mars, each mission reveals new discoveries about our universe and potential for life beyond Earth.",
-        "Education serves as the foundation for personal development and societal progress. Through learning, we acquire knowledge, develop skills, and cultivate critical thinking abilities that enable us to solve problems and contribute meaningfully to our communities.",
-        "Physical exercise promotes both mental and physical well-being, reducing stress while strengthening muscles and improving cardiovascular health. Regular activity, whether walking, swimming, or playing sports, contributes to a longer, healthier, and more fulfilling life."
-    ];
+// Sample paragraphs for typing practice
+const sampleTexts = [
+    "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet at least once. It has been used for decades to test typewriters and computer keyboards, as well as to display fonts and test typing skills.",
+    "Technology has revolutionized the way we communicate, work, and live our daily lives. From smartphones that connect us instantly to artificial intelligence that assists with complex tasks, innovation continues to shape our future in remarkable ways.",
+    "Reading books expands our knowledge, improves vocabulary, and enhances critical thinking skills. Whether fiction or non-fiction, each page offers new perspectives and insights that contribute to personal growth and intellectual development throughout our lives.",
+    "Climate change represents one of the most significant challenges facing humanity today. Rising temperatures, melting ice caps, and extreme weather patterns require immediate action from governments, businesses, and individuals to ensure a sustainable future for generations to come.",
+    "The art of cooking combines creativity, science, and tradition to create delicious meals that bring people together. From selecting fresh ingredients to mastering various techniques, culinary skills develop through practice, patience, and a willingness to experiment with flavors.",
+    "Space exploration continues to captivate human imagination and push the boundaries of scientific knowledge. From landing on the moon to sending rovers to Mars, each mission reveals new discoveries about our universe and potential for life beyond Earth.",
+    "Education serves as the foundation for personal development and societal progress. Through learning, we acquire knowledge, develop skills, and cultivate critical thinking abilities that enable us to solve problems and contribute meaningfully to our communities.",
+    "Physical exercise promotes both mental and physical well-being, reducing stress while strengthening muscles and improving cardiovascular health. Regular activity, whether walking, swimming, or playing sports, contributes to a longer, healthier, and more fulfilling life."
+];
 
-    // State management
+const TypingSpeedTest: React.FC<TypingSpeedTestProps> = ({ className = '' }) => {
     const [currentText, setCurrentText] = useState('');
     const [userInput, setUserInput] = useState('');
     const [isActive, setIsActive] = useState(false);
@@ -40,16 +39,9 @@ const TypingSpeedTest: React.FC<TypingSpeedTestProps> = ({ className = '' }) => 
         timeElapsed: 0,
         charactersTyped: 0,
         errorsCount: 0
-    });
-
-    // Refs
+    });    // Refs
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-    // Initialize with random text
-    useEffect(() => {
-        resetTest();
-    }, []);
 
     // Timer effect
     useEffect(() => {
@@ -118,10 +110,8 @@ const TypingSpeedTest: React.FC<TypingSpeedTestProps> = ({ className = '' }) => 
             const currentStats = calculateStats(value, currentText, timeElapsed);
             setStats(currentStats);
         }
-    };
-
-    // Reset test with new random text
-    const resetTest = () => {
+    };    // Reset test with new random text
+    const resetTest = useCallback(() => {
         const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
         setCurrentText(randomText);
         setUserInput('');
@@ -135,13 +125,16 @@ const TypingSpeedTest: React.FC<TypingSpeedTestProps> = ({ className = '' }) => 
             timeElapsed: 0,
             charactersTyped: 0,
             errorsCount: 0
-        });
-
-        // Focus input after reset
+        });        // Focus input after reset
         setTimeout(() => {
             inputRef.current?.focus();
         }, 100);
-    };
+    }, []);
+
+    // Initialize with random text
+    useEffect(() => {
+        resetTest();
+    }, [resetTest]);
 
     // Toggle pause/resume
     const togglePause = () => {
