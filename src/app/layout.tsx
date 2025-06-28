@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthErrorMessage from "@/components/AuthErrorMessage";
+import { AnalyticsProvider, TrackingScript, CookieConsent } from '@/components/Analytics';
+import AutomaticPageViewTracker from '@/components/Analytics/AutomaticPageViewTracker';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -37,16 +39,21 @@ export default function RootLayout({
         />
       </head>
       <body className="font-poppins">{/* Using custom CSS class instead of poppins.className */}
-        <ThemeProvider>
-          <AuthProvider>
-            <Header />
-            <main className="container" style={{ paddingTop: '100px', paddingBottom: '50px', minHeight: 'calc(100vh - 200px)' }}>
-              {children}
-            </main>
-            <Footer />
-            <AuthErrorMessage />
-          </AuthProvider>
-        </ThemeProvider>
+        <AnalyticsProvider>
+          <TrackingScript />
+          <CookieConsent />
+          <AutomaticPageViewTracker />
+          <ThemeProvider>
+            <AuthProvider>
+              <Header />
+              <main className="container" style={{ paddingTop: '100px', paddingBottom: '50px', minHeight: 'calc(100vh - 200px)' }}>
+                {children}
+              </main>
+              <Footer />
+              <AuthErrorMessage />
+            </AuthProvider>
+          </ThemeProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   );
